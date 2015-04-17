@@ -1,7 +1,8 @@
 ##
 ## Sources found in here: http://stackoverflow.com/questions/22073688/python-spell-corrector-using-ntlk
-## 
+##
 
+import os
 import nltk
 import enchant
 from enchant.checker import SpellChecker
@@ -30,9 +31,7 @@ class MySpellChecker():
         return word
 
 
-if __name__ == '__main__':
-    filename = "input/test/11717.txt"
-    f = open(filename, 'r')
+def checker(f):
     text = f.read()    
 
     spellerrors = 0
@@ -124,3 +123,14 @@ if __name__ == '__main__':
           str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
 
 
+
+if __name__ == '__main__':
+    for subdir, dirs, files in os.walk('input\\test'):
+        for file in files:
+            filename = os.path.join(subdir, file)
+            print(filename)
+            f = open(filename, 'r')
+            checker(f)
+            f.close
+        
+    
