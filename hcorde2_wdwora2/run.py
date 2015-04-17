@@ -2,9 +2,11 @@
 ## Sources found in here: http://stackoverflow.com/questions/22073688/python-spell-corrector-using-ntlk
 ##
 
+import sys
 import os
 import nltk
 import enchant
+import json
 from enchant.checker import SpellChecker
 from nltk.tokenize import word_tokenize
 from nltk.corpus import treebank
@@ -14,6 +16,8 @@ from nltk.grammar import CFG, Nonterminal, DependencyGrammar
 from nltk.metrics.distance import edit_distance
 from itertools import chain
 
+
+statistics = dict()
 
 class MySpellChecker():
     def __init__(self, dict_name='en_US', max_dist=2):
@@ -39,6 +43,36 @@ def train(f, level):
     if truelevel == "": return # We are not looking at a proper file
     if str(f).find(".txt") == -1: return # We are not looking at a proper file
     print("This " + truelevel + " level file is good to go.")
+
+    text = f.read() 
+
+    spellerrors = 0
+    
+    my_spell_checker = MySpellChecker(max_dist=1)
+    chkr = SpellChecker("en_US", text)
+    for err in chkr:
+        # print(err.word + " at position " + str(err.wordpos))
+        err.replace(my_spell_checker.replace(err.word))
+        spellerrors = spellerrors + 1;
+
+    if( spellerrors < statistics.get(truelevel+"_error_min",pow(2,31)) ):
+        statistics[truelevel+"_error_min"] = spellerrors
+    if( spellerrors > statistics.get(truelevel+"_error_max",0) ):
+        statistics[truelevel+"_error_max"] = spellerrors
+    statistics[truelevel+"_error_total"] = statistics.get(truelevel+"_error_total",0) + spellerrors
+
+    sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+    sentencearray = sent_detector.tokenize(text.strip())
+    sentencecount = len(sentencearray)
+
+    if( sentencecount > statistics.get(truelevel+"_sentence_min",pow(2,31)) ):
+        statistics[truelevel+"_sentence_min"] = sentencecount
+    if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
+        statistics[truelevel+"_sentence_max"] = sentencecount
+    statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + spellerrors
+
+    statistics[truelevel+"_docs_total"] = statistics.get(truelevel+"_docs_total",0) + 1
+    
     return
 
 def checker(f):
@@ -143,6 +177,10 @@ if __name__ == '__main__':
             f = open(filename, 'r')
             train(f,subdir)
             f.close
+
+    print(statistics)
+
+    print(json.dumps(statistics))
     
     for subdir, dirs, files in os.walk('input\\test'):
         for file in files:
