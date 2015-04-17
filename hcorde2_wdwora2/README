@@ -1,5 +1,29 @@
+project 1 for CS421 - University of Illinois at Chicago
+Harry Cordewener hcorde2@uic.edu
+Walter Dworak wdwora2@uic.edu
+
+
+-------------------------------------------------------------------------
+--->SETUP<---------------------------------------------------------------
+The following packages are required and need to be installed on your system. For installation instructions for there packages please consult the python library installation procedure for your operating system.
+
 Package Requirements:
         python
         python-nltk
         nltk-data
         pyenchant
+
+After extracting the archived files enter the project directory. After placing the intended essay files in the test directory, navigate to the projects root root directory and run the "run.py" script file with your python interpreter. 
+
+Example:
+        "python run.py"
+
+-------------------------------------------------------------------------
+--->TECHNIQUE<-----------------------------------------------------------
+
+*Fill in with info*
+
+-------------------------------------------------------------------------
+--->TODO<----------------------------------------------------------------
+
+*Fill in at end*
