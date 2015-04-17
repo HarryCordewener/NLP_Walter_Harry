@@ -171,9 +171,11 @@ def checker(f):
 
 if __name__ == '__main__':
     
-    for subdir, dirs, files in os.walk('input\\training\\original'):
+    for subdir, dirs, files in os.walk('input','training', 'original'):
+        print(str(files))
         for file in files:
             filename = os.path.join(subdir, file)
+            print(filename)
             f = open(filename, 'r')
             train(f,subdir)
             f.close
@@ -182,7 +184,7 @@ if __name__ == '__main__':
 
     print(json.dumps(statistics))
     
-    for subdir, dirs, files in os.walk('input\\test'):
+    for subdir, dirs, files in os.walk('input', 'test'):
         for file in files:
             filename = os.path.join(subdir, file)
             print(filename)
