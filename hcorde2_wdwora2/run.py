@@ -31,7 +31,7 @@ class MySpellChecker():
 
 
 if __name__ == '__main__':
-    filename = "P5/P5-original/high/11580.txt"
+    filename = "input/test/11717.txt"
     f = open(filename, 'r')
     text = f.read()    
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     ## Grades, 1 = low, 5 = high
     ## 1a = Spelling Mistakes
     score_1a = 5 - max(min(int((spellerrors / 5)),4),0)
-    print(score_1a)
+    # print(score_1a)
 
     ## 1b = Subject-Verb agreement - agreement with respect to person and number (singular/plural)
     score_1b = 0
@@ -95,7 +95,8 @@ if __name__ == '__main__':
 
     ## 1d =  Sentence formation - are the sentences formed properly? i.e. beginning and ending
     ## properly, is the word order correct, are the constituents formed properly? are there
-    ## missing words or constituents (prepositions, subject, object etc.)?
+    ## missing words or constituents (prepositions, subject, object etc.)?
+
     score_1d = 0
 
     ## 2. Semantics (meaning) / Pragmatics (general quality)
@@ -104,20 +105,22 @@ if __name__ == '__main__':
 
     ## (b) Does the essay address the topic?
     score_2b = 0
-    if "twenty" in t: score_2b = score_2b + 1
-    if "car" in t: score_2b = score_2b + 1
-    if "fewer" in t: score_2b = score_2b + 1
-    if "fewer cars" in t: score_2b = score_2b + 1
-    print(score_2b)
+    #if "twenty" in t: score_2b = score_2b + 1
+    #if "car" in t: score_2b = score_2b + 1
+    #if "fewer" in t: score_2b = score_2b + 1
+    #if "fewer cars" in t: score_2b = score_2b + 1
+    # print(score_2b)
 
     ## 3. Length of the essay:
     ## (a) Is the length appropriate? At least 10 sentences were required. Longer essays are in
-    ## general considered better.
+    ## general considered better.
+
     score_3a = min(max(int(1+((len(sentencearray)-10)/2)),1),5)
-    print(score_3a)
+    # print(score_3a)
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
-    print(score_final)
+    print(str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + "\t" +
+          str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
 
 
