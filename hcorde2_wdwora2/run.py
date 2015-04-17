@@ -31,6 +31,16 @@ class MySpellChecker():
         return word
 
 
+def train(f, level):
+    truelevel = ""
+    if level.find("high") != -1: truelevel = "high"
+    if level.find("low") != -1: truelevel = "low"
+    if level.find("medium") != -1: truelevel = "medium"
+    if truelevel == "": return # We are not looking at a proper file
+    if str(f).find(".txt") == -1: return # We are not looking at a proper file
+    print("This " + truelevel + " level file is good to go.")
+    return
+
 def checker(f):
     text = f.read()    
 
@@ -122,9 +132,18 @@ def checker(f):
     print(str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + "\t" +
           str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
 
+    return
 
 
 if __name__ == '__main__':
+    
+    for subdir, dirs, files in os.walk('input\\training\\original'):
+        for file in files:
+            filename = os.path.join(subdir, file)
+            f = open(filename, 'r')
+            train(f,subdir)
+            f.close
+    
     for subdir, dirs, files in os.walk('input\\test'):
         for file in files:
             filename = os.path.join(subdir, file)
