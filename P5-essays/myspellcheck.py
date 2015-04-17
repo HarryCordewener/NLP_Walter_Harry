@@ -9,7 +9,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import treebank
 from nltk.tokenize import TreebankWordTokenizer
 from nltk.corpus import wordnet as wn
-from nltk.grammar import CFG, Nonterminal
+from nltk.grammar import CFG, Nonterminal, DependencyGrammar
 from nltk.metrics.distance import edit_distance
 from itertools import chain
 
@@ -68,6 +68,11 @@ if __name__ == '__main__':
     print("Sentences: " + str(len(sentencearray)))
 
     print(nltk.pos_tag(tokenized))
+    ## NEEDED: A dependency grammar!
+    #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
+    #trees = pdp.parse(tokenized)
+    #for tree in trees:
+    #    print(tree)
 
     ## Work from here must be done using logic found at: http://www.nltk.org/book/ch05.html
     ## Note that the subject is: Do you agree or disagree with the following statement?
@@ -99,6 +104,11 @@ if __name__ == '__main__':
 
     ## (b) Does the essay address the topic?
     score_2b = 0
+    if "twenty" in t: score_2b = score_2b + 1
+    if "car" in t: score_2b = score_2b + 1
+    if "fewer" in t: score_2b = score_2b + 1
+    if "fewer cars" in t: score_2b = score_2b + 1
+    print(score_2b)
 
     ## 3. Length of the essay:
     ## (a) Is the length appropriate? At least 10 sentences were required. Longer essays are in
