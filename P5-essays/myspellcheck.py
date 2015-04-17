@@ -30,33 +30,42 @@ class MySpellChecker():
 
 
 if __name__ == '__main__':
-    filename = "C:/Users/Harry/OneDrive/P5-essays/P5/P5-original/high/11580.txt"
+    filename = "P5/P5-original/high/11580.txt"
     f = open(filename, 'r')
     text = "The scale of the monitoring carried out by the NSA has been revealed in documents made public by whistleblower Edward Snowden over the last two years. Some of those papers show the NSA tapped the net's backbone network to siphon off data. The backbone is made up of high-speed cables that link big ISPs and key transit points on the net."
     text = f.read()    
+
+    spellerrors = 0
 
     my_spell_checker = MySpellChecker(max_dist=1)
     chkr = SpellChecker("en_US", text)
     for err in chkr:
         print(err.word + " at position " + str(err.wordpos))
         err.replace(my_spell_checker.replace(err.word))
-
+        spellerrors = spellerrors + 1;        
 
     t = chkr.get_text()
     print("\n" + t)
-
 
     tbank_productions = set(production for sent in treebank.parsed_sents()
                             for production in sent.productions())
     tbank_grammar = CFG(Nonterminal('S'), list(tbank_productions))
 
     rd_parser = nltk.parse.EarleyChartParser(tbank_grammar)
-    
+
+    ## This divides it into a per-sentence item list.
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
-    print('\n-----\n'.join(sent_detector.tokenize(t.strip())))
+    sentencearray = sent_detector.tokenize(t.strip())
+    print('\n-----\n'.join(sentencearray))
 
-    print(TreebankWordTokenizer().tokenize(t))
+    ## This splits everything up into seperate words.
+    tokenized = TreebankWordTokenizer().tokenize(t)
+    print(tokenized)
 
+    ## Display spell errors found.
+    print("Spellerrors: " + str(spellerrors))
+    print("Words: " + str(len(tokenized)))
+    print("Sentences: " + str(len(sentencearray)))
 
     ##sent = text.split()
 
