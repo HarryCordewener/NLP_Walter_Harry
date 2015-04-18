@@ -81,6 +81,7 @@ def checker(f, outf, thefilename):
     print("Reading: " + str(f))
     text = f.read() 
 
+    subverbagg_err = 0
     spellerrors = 0
 
     my_spell_checker = MySpellChecker(max_dist=1)
@@ -114,7 +115,22 @@ def checker(f, outf, thefilename):
     print("Words: " + str(len(tokenized)))
     print("Sentences: " + str(len(sentencearray)))
 
-    print(nltk.pos_tag(tokenized))
+    for sentence in sentencearray:
+        tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
+        pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
+        ## Illegal Combinations: http://grammar.ccc.commnet.edu/grammar/sv_agr.htm
+        ## Basic Principle: Singular subjects need singular verbs; plural subjects need plural verbs.
+        ## My brother is a nutritionist. My sisters are mathematicians.
+        ## So we are counting errors for:
+        ##  VBP / VBZ followed by NNS / NNPS
+        ## We can't check for verb plural using the tags existing.
+        for x in range(1,len(pos_tagged_sentence)):
+            # print(str(pos_tagged_sentence[x-1]) + " & " + str(pos_tagged_sentence[x]))
+            if( (pos_tagged_sentence[x-1][1] == "VBP" or pos_tagged_sentence[x-1][1] == "VBZ")
+                and (pos_tagged_sentence[x][1] == "NNS" or pos_tagged_sentence[x][1] == "NNPS") ):
+                # print("\nHOW DARE YOU!!!!\n")
+                subverbagg_err = subverbagg_err + 1
+    
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
     #trees = pdp.parse(tokenized)
@@ -145,7 +161,7 @@ def checker(f, outf, thefilename):
     # print(score_1a)
 
     ## 1b = Subject-Verb agreement - agreement with respect to person and number (singular/plural)
-    score_1b = 0
+    score_1b = max(5-(subverbagg_err),1)
 
     ## 1c = Verb tense / missing verb / extra verb - is verb tense used correctly? Is a verb missing,
     ## e.g. an auxiliary? For example, in the example of low essay above, the sequence will
