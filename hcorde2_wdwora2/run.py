@@ -7,6 +7,7 @@ import os
 import nltk
 import enchant
 import json
+import re
 from enchant.checker import SpellChecker
 from nltk import *
 from nltk.tokenize import word_tokenize
@@ -43,7 +44,7 @@ def train(f, level):
     if level.find("medium") != -1: truelevel = "medium"
     if truelevel == "": return # We are not looking at a proper file
     if str(f).find(".txt") == -1: return # We are not looking at a proper file
-    # print("This " + truelevel + " level file is good to go.")
+    print("This " + truelevel + " level file, " + str(f) + ",is good to go.")
 
     text = f.read() 
 
@@ -56,7 +57,7 @@ def train(f, level):
         err.replace(my_spell_checker.replace(err.word))
         spellerrors = spellerrors + 1;
     
-    if( spellerrors < statistics.get(truelevel+"_error_min",pow(2,31)) ):
+    if( spellerrors < statistics.get(truelevel+"_error_min",pow(3,31)) ):
         statistics[truelevel+"_error_min"] = spellerrors
     if( spellerrors > statistics.get(truelevel+"_error_max",0) ):
         statistics[truelevel+"_error_max"] = spellerrors
@@ -75,7 +76,10 @@ def train(f, level):
     statistics[truelevel+"_docs_total"] = statistics.get(truelevel+"_docs_total",0) + 1
 
     subverbagg_err = 0
+    nomainverb_err = 0
+    mixedverbtense_err = 0
 
+    #begin sentence level operations
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
         pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
@@ -95,6 +99,20 @@ def train(f, level):
                 and (pos_tagged_sentence[x][1] == "NP" or pos_tagged_sentence[x][1] == "NNP") ):
                 # print("\nHOW DARE YOU!!!!\n")
                 subverbagg_err = subverbagg_err + 1
+        # attempt to do stats on the verb tenses, mainly check if there is a main verb and see if all verbs in a sentence are the same tense
+        # a sentence must have a least 1 VB* for it to count as having a main verb
+        # verb of different tenses will trigger an error, a mix including VB is not being counted as an error due toa noticed pattern in the tagging
+        # split loops for logic separation
+        verb_count = 0
+        verbtense = ""
+        for y in range(0,len(pos_tagged_sentence)):
+            verbmatch = re.match("VB*", pos_tagged_sentence[y][1])
+            if verbmatch:
+                verb_count = verb_count + 1
+
+        #No verb then no main verb, no main verb error
+        if(verb_count < 1):
+            nomainverb_err = nomainverb_err + 1
 
     if( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31)) ):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
@@ -102,6 +120,13 @@ def train(f, level):
         statistics[truelevel+"_subverbagg_max"] = subverbagg_err
     statistics[truelevel+"_subverbagg_total"] = statistics.get(truelevel+"_subverbagg_total",0) + subverbagg_err
     
+    #verb stats
+    if( nomainverb_err < statistics.get(truelevel+"_nomainverb_min",pow(2,31))):
+        statistics[truelevel+"_nomainverb_min"] = nomainverb_err
+    if( nomainverb_err > statistics.get(truelevel+"_nomainverb_max",0) ):
+        statistics[truelevel+"_nomainverb_max"] = nomainverb_err
+    statistics[truelevel+"_nomainverb_total"] = statistics.get(truelevel+"_nomainverb_total",0) + nomainverb_err
+
     return
 
 def checker(f, outf, thefilename):
@@ -136,7 +161,7 @@ def checker(f, outf, thefilename):
 
     ## This splits everything up into seperate words.
     tokenized = TreebankWordTokenizer().tokenize(t)
-    # print(tokenized)
+    #print(tokenized)
 
     ## Display spell errors found.
     # print("Spellerrors: " + str(spellerrors))
@@ -146,6 +171,7 @@ def checker(f, outf, thefilename):
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
         pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
+        #print(pos_tagged_sentence)
         ## Illegal Combinations: http://grammar.ccc.commnet.edu/grammar/sv_agr.htm
         ## Basic Principle: Singular subjects need singular verbs; plural subjects need plural verbs.
         ## My brother is a nutritionist. My sisters are mathematicians.
