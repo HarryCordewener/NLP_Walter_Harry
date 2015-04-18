@@ -43,7 +43,7 @@ def train(f, level):
     if level.find("medium") != -1: truelevel = "medium"
     if truelevel == "": return # We are not looking at a proper file
     if str(f).find(".txt") == -1: return # We are not looking at a proper file
-    print("This " + truelevel + " level file is good to go.")
+    # print("This " + truelevel + " level file is good to go.")
 
     text = f.read() 
 
@@ -73,12 +73,40 @@ def train(f, level):
     statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + spellerrors
 
     statistics[truelevel+"_docs_total"] = statistics.get(truelevel+"_docs_total",0) + 1
+
+    subverbagg_err = 0
+
+    for sentence in sentencearray:
+        tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
+        pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
+        ## Illegal Combinations: http://grammar.ccc.commnet.edu/grammar/sv_agr.htm
+        ## Basic Principle: Singular subjects need singular verbs; plural subjects need plural verbs.
+        ## My brother is a nutritionist. My sisters are mathematicians.
+        ## So we are counting errors for:
+        ##  VBP / VBZ followed by NNS / NNPS
+        ## We can't check for verb plural using the tags existing.
+        for x in range(1,len(pos_tagged_sentence)):
+            # print(str(pos_tagged_sentence[x-1]) + " & " + str(pos_tagged_sentence[x]))
+            if( (pos_tagged_sentence[x-1][1] == "VBP" or pos_tagged_sentence[x-1][1] == "VBZ" )
+                and (pos_tagged_sentence[x][1] == "NNS" or pos_tagged_sentence[x][1] == "NNPS") ):
+                # print("\nHOW DARE YOU!!!!\n")
+                subverbagg_err = subverbagg_err + 1
+            if( (pos_tagged_sentence[x-1][1] == "VB" or pos_tagged_sentence[x-1][1] == "VBD" )
+                and (pos_tagged_sentence[x][1] == "NP" or pos_tagged_sentence[x][1] == "NNP") ):
+                # print("\nHOW DARE YOU!!!!\n")
+                subverbagg_err = subverbagg_err + 1
+
+    if( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31)) ):
+        statistics[truelevel+"_subverbagg_min"] = subverbagg_err
+    if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0) ):
+        statistics[truelevel+"_subverbagg_max"] = subverbagg_err
+    statistics[truelevel+"_subverbagg_total"] = statistics.get(truelevel+"_subverbagg_total",0) + subverbagg_err
     
     return
 
 def checker(f, outf, thefilename):
     if str(f).find(".txt") == -1: return # We are not looking at a proper file
-    print("Reading: " + str(f))
+    # print("Reading: " + str(f))
     text = f.read() 
 
     subverbagg_err = 0
@@ -87,7 +115,7 @@ def checker(f, outf, thefilename):
     my_spell_checker = MySpellChecker(max_dist=1)
     chkr = SpellChecker("en_US", text)
     for err in chkr:
-        print(err.word + " at position " + str(err.wordpos))
+        # print(err.word + " at position " + str(err.wordpos))
         err.replace(my_spell_checker.replace(err.word))
         spellerrors = spellerrors + 1;        
 
@@ -111,9 +139,9 @@ def checker(f, outf, thefilename):
     # print(tokenized)
 
     ## Display spell errors found.
-    print("Spellerrors: " + str(spellerrors))
-    print("Words: " + str(len(tokenized)))
-    print("Sentences: " + str(len(sentencearray)))
+    # print("Spellerrors: " + str(spellerrors))
+    # print("Words: " + str(len(tokenized)))
+    # print("Sentences: " + str(len(sentencearray)))
 
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
@@ -128,6 +156,10 @@ def checker(f, outf, thefilename):
             # print(str(pos_tagged_sentence[x-1]) + " & " + str(pos_tagged_sentence[x]))
             if( (pos_tagged_sentence[x-1][1] == "VBP" or pos_tagged_sentence[x-1][1] == "VBZ")
                 and (pos_tagged_sentence[x][1] == "NNS" or pos_tagged_sentence[x][1] == "NNPS") ):
+                # print("\nHOW DARE YOU!!!!\n")
+                subverbagg_err = subverbagg_err + 1
+            if( (pos_tagged_sentence[x-1][1] == "VB" or pos_tagged_sentence[x-1][1] == "VBD" )
+                and (pos_tagged_sentence[x][1] == "NP" or pos_tagged_sentence[x][1] == "NNP") ):
                 # print("\nHOW DARE YOU!!!!\n")
                 subverbagg_err = subverbagg_err + 1
     
@@ -148,14 +180,13 @@ def checker(f, outf, thefilename):
     ## medium_error_max -> high_error_min should give 2.5-3.0 points
     ## low_error_max -> medium_error_min should give 1-2.5 points
     if(spellerrors > statistics["medium_error_max"] ):
-        print("Higher than medium_error_max")
+        # print("Higher than medium_error_max")
         score_1a = min(int(round(0.5+((1.5/(statistics["low_error_max"] - statistics["medium_error_max"])) * spellerrors))),1)
     elif(spellerrors > statistics["high_error_max"] ):
-        print("Higher than high_error_max")
+        # print("Higher than high_error_max")
         score_1a = int(round(2+((1.5/(statistics["medium_error_max"] - statistics["high_error_max"])) * spellerrors)))
     else:
-        print("Higher than high_error_min")
-        print(3.5+((1.5/(statistics["high_error_max"] - statistics["high_error_min"])) * spellerrors))
+        # print("Higher than high_error_min")
         score_1a = max(int(round(3.5+((1.5/(statistics["high_error_max"] - statistics["high_error_min"])) * spellerrors))),5)
     
     # print(score_1a)
@@ -193,16 +224,16 @@ def checker(f, outf, thefilename):
 
     sentencenum = len(sentencearray)
     if(sentencenum > statistics["medium_sentence_max"] ):
-        print("Higher than medium_sentence_max")
+        # print("Higher than medium_sentence_max")
         score_3a = min(int(round(0.5+((1.5/(statistics["low_sentence_max"] - statistics["medium_sentence_max"])) * sentencenum))),1)
     elif(sentencenum > statistics["high_sentence_max"] ):
-        print("Higher than high_sentence_max")
+        # print("Higher than high_sentence_max")
         score_3a = int(round(2+((1.5/(statistics["medium_sentence_max"] - statistics["high_sentence_max"])) * sentencenum)))
     else:
-        print("Higher than high_sentence_min")
-        print(3.5+((1.5/(statistics["high_sentence_max"] - statistics["high_sentence_min"])) * spellerrors))
+        # print("Higher than high_sentence_min")
         score_3a = max(int(round(3.5+((1.5/(statistics["high_sentence_max"] - statistics["high_sentence_min"])) * sentencenum))),5)
-
+    if(sentencenum < 10):
+        score_3a = 1
     
     # score_3a = min(max(int(1+((len(sentencearray)-10)/2)),1),5)
     # print(score_3a)
@@ -237,12 +268,12 @@ if __name__ == '__main__':
         json1_file = open(statfilename,'r')
         statistics = json.load(json1_file)
 
-    print(statistics)
+    # print(statistics)
     
     for subdir, dirs, files in os.walk(os.path.join('input','test')):
         for file in files:
             filename = os.path.join(subdir, file)
-            print(filename)
+            # print(filename)
             f = open(filename, 'r')
             checker(f, outputfile, file)
             f.close
