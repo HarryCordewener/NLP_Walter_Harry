@@ -136,6 +136,7 @@ def checker(f, outf, thefilename):
 
     subverbagg_err = 0
     spellerrors = 0
+    nomainverb_err = 0
 
     my_spell_checker = MySpellChecker(max_dist=1)
     chkr = SpellChecker("en_US", text)
@@ -188,6 +189,16 @@ def checker(f, outf, thefilename):
                 and (pos_tagged_sentence[x][1] == "NP" or pos_tagged_sentence[x][1] == "NNP") ):
                 # print("\nHOW DARE YOU!!!!\n")
                 subverbagg_err = subverbagg_err + 1
+        verb_count = 0
+        verbtense = ""
+        for y in range(0,len(pos_tagged_sentence)):
+            verbmatch = re.match("VB*", pos_tagged_sentence[y][1])
+            if verbmatch:
+                verb_count = verb_count + 1
+
+        #No verb then no main verb, no main verb error
+        if(verb_count < 1):
+            nomainverb_err = nomainverb_err + 1
     
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
@@ -224,7 +235,14 @@ def checker(f, outf, thefilename):
     ## e.g. an auxiliary? For example, in the example of low essay above, the sequence will
     ## be not agree is incorrect. Normally the verb to be is not followed by another infinitival
     ## verb, but either a participle or a progressive tense.
-    score_1c = 0
+    if(nomainverb_err > statistics["medium_nomainverb_max"] ):
+        score_1c = min(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
+    elif(nomainverb_err > statistics["high_nomainverb_max"] ):
+        score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
+    else:
+        score_1c = max(int(round(3.5+((1.5/(statistics["high_nomainverb_max"] - statistics["high_nomainverb_min"])) * nomainverb_err))),5)
+
+    score_1c = max(5-(nomainverb_err),1)
 
     ## 1d =  Sentence formation - are the sentences formed properly? i.e. beginning and ending
     ## properly, is the word order correct, are the constituents formed properly? are there
