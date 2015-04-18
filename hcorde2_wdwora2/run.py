@@ -54,7 +54,7 @@ def train(f, level):
         # print(err.word + " at position " + str(err.wordpos))
         err.replace(my_spell_checker.replace(err.word))
         spellerrors = spellerrors + 1;
-
+    
     if( spellerrors < statistics.get(truelevel+"_error_min",pow(2,31)) ):
         statistics[truelevel+"_error_min"] = spellerrors
     if( spellerrors > statistics.get(truelevel+"_error_max",0) ):
@@ -75,7 +75,7 @@ def train(f, level):
     
     return
 
-def checker(f):
+def checker(f, outf):
     text = f.read()    
 
     spellerrors = 0
@@ -163,33 +163,43 @@ def checker(f):
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
-    print(str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + "\t" +
-          str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
+    output = (str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + "\t" +
+             str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
+    
+    print(output)
+
+    outf.write(output + "\n")
 
     return
 
 
 if __name__ == '__main__':
+
     
-    for subdir, dirs, files in os.walk('input','training', 'original'):
-        print(str(files))
+    outputfile = open('output\\output.txt','w')
+    jsonfile = open('input\\training\\trained_statistics.txt','w')
+    
+
+    for subdir, dirs, files in os.walk('input','training','original'):
         for file in files:
             filename = os.path.join(subdir, file)
-            print(filename)
             f = open(filename, 'r')
             train(f,subdir)
             f.close
 
     print(statistics)
 
-    print(json.dumps(statistics))
+    jsonfile.write(json.dumps(statistics))
     
-    for subdir, dirs, files in os.walk('input', 'test'):
+    
+    for subdir, dirs, files in os.walk('input','test'):
         for file in files:
             filename = os.path.join(subdir, file)
             print(filename)
             f = open(filename, 'r')
-            checker(f)
+            checker(f, outputfile)
             f.close
+
+    outputfile.close()
         
     
