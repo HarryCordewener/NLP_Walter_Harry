@@ -222,7 +222,7 @@ def checker(f, outf, thefilename):
 if __name__ == '__main__':
 
     statfilename = os.path.join('input','training','trained_statistics.txt')
-    outputfile = open(os.path.join('output','output.txt'),'w')
+    outputfile = open(os.path.join('output','results.txt'),'w')
     
     if os.path.isfile(statfilename) != True:
         for subdir, dirs, files in os.walk(os.path.join('input','training','original')):
