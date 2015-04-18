@@ -76,6 +76,8 @@ def train(f, level):
     return
 
 def checker(f, outf):
+    if str(f).find(".txt") == -1: return # We are not looking at a proper file
+    print("Reading: " + str(f))
     text = f.read()    
 
     spellerrors = 0
@@ -177,10 +179,9 @@ if __name__ == '__main__':
 
     
     outputfile = open('output\\output.txt','w')
-    jsonfile = open('input\\training\\trained_statistics.txt','w')
     
 
-    for subdir, dirs, files in os.walk('input','training','original'):
+    for subdir, dirs, files in os.walk('input/training/original'):
         for file in files:
             filename = os.path.join(subdir, file)
             f = open(filename, 'r')
@@ -189,10 +190,10 @@ if __name__ == '__main__':
 
     print(statistics)
 
-    jsonfile.write(json.dumps(statistics))
+    with open('input/training/trained_statistics.txt','w') as outfile:
+        json.dump(statistics, outfile)
     
-    
-    for subdir, dirs, files in os.walk('input','test'):
+    for subdir, dirs, files in os.walk('input/test'):
         for file in files:
             filename = os.path.join(subdir, file)
             print(filename)
