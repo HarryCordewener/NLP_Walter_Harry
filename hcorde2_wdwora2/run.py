@@ -66,7 +66,7 @@ def train(f, level):
     sentencearray = sent_detector.tokenize(text.strip())
     sentencecount = len(sentencearray)
 
-    if( sentencecount > statistics.get(truelevel+"_sentence_min",pow(2,31)) ):
+    if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) ):
         statistics[truelevel+"_sentence_min"] = sentencecount
     if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
         statistics[truelevel+"_sentence_max"] = sentencecount
@@ -114,7 +114,7 @@ def checker(f, outf, thefilename):
     print("Words: " + str(len(tokenized)))
     print("Sentences: " + str(len(sentencearray)))
 
-    # print(nltk.pos_tag(tokenized))
+    print(nltk.pos_tag(tokenized))
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
     #trees = pdp.parse(tokenized)
@@ -175,7 +175,20 @@ def checker(f, outf, thefilename):
     ## (a) Is the length appropriate? At least 10 sentences were required. Longer essays are in
     ## general considered better.
 
-    score_3a = min(max(int(1+((len(sentencearray)-10)/2)),1),5)
+    sentencenum = len(sentencearray)
+    if(sentencenum > statistics["medium_sentence_max"] ):
+        print("Higher than medium_sentence_max")
+        score_3a = min(int(round(0.5+((1.5/(statistics["low_sentence_max"] - statistics["medium_sentence_max"])) * sentencenum))),1)
+    elif(sentencenum > statistics["high_sentence_max"] ):
+        print("Higher than high_sentence_max")
+        score_3a = int(round(2+((1.5/(statistics["medium_sentence_max"] - statistics["high_sentence_max"])) * sentencenum)))
+    else:
+        print("Higher than high_sentence_min")
+        print(3.5+((1.5/(statistics["high_sentence_max"] - statistics["high_sentence_min"])) * spellerrors))
+        score_3a = max(int(round(3.5+((1.5/(statistics["high_sentence_max"] - statistics["high_sentence_min"])) * sentencenum))),5)
+
+    
+    # score_3a = min(max(int(1+((len(sentencearray)-10)/2)),1),5)
     # print(score_3a)
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
