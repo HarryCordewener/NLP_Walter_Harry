@@ -8,6 +8,7 @@ import nltk
 import enchant
 import json
 from enchant.checker import SpellChecker
+from nltk import *
 from nltk.tokenize import word_tokenize
 from nltk.corpus import treebank
 from nltk.tokenize import TreebankWordTokenizer
@@ -92,11 +93,12 @@ def checker(f, outf):
     t = chkr.get_text()
     print("\n" + t)
 
-    tbank_productions = set(production for sent in treebank.parsed_sents()
-                            for production in sent.productions())
-    tbank_grammar = CFG(Nonterminal('S'), list(tbank_productions))
-
-    rd_parser = nltk.parse.EarleyChartParser(tbank_grammar)
+    ## Useless code?
+    #print("Trying to print semantics")
+    #test_results = nltk.sem.util.interpret_sents(t, 'grammars/large_grammars/commandtalk.cfg')
+    #for result in test_results:
+    #    for (synrep, semrep) in result:
+    #        print(synrep)
 
     ## This divides it into a per-sentence item list.
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
@@ -177,21 +179,23 @@ def checker(f, outf):
 
 if __name__ == '__main__':
 
-    
+    statfilename = 'input/training/trained_statistics.txt'
     outputfile = open('output\\output.txt','w')
     
-
-    for subdir, dirs, files in os.walk('input/training/original'):
-        for file in files:
-            filename = os.path.join(subdir, file)
-            f = open(filename, 'r')
-            train(f,subdir)
-            f.close
+    if os.path.isfile(statfilename) != True:
+        for subdir, dirs, files in os.walk('input/training/original'):
+            for file in files:
+                filename = os.path.join(subdir, file)
+                f = open(filename, 'r')
+                train(f,subdir)
+                f.close
+        with open(statfilename,'w') as outfile:
+            json.dump(statistics, outfile)
+    else:
+        json1_file = open(statfilename,'r')
+        statistics = json.load(json1_file)
 
     print(statistics)
-
-    with open('input/training/trained_statistics.txt','w') as outfile:
-        json.dump(statistics, outfile)
     
     for subdir, dirs, files in os.walk('input/test'):
         for file in files:
