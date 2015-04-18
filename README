@@ -1,5 +1,0 @@
-Package Requirements:
-        python
-        python-nltk
-        nltk-data
-        pyenchant
