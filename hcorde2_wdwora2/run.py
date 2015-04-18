@@ -76,10 +76,10 @@ def train(f, level):
     
     return
 
-def checker(f, outf):
+def checker(f, outf, thefilename):
     if str(f).find(".txt") == -1: return # We are not looking at a proper file
     print("Reading: " + str(f))
-    text = f.read()    
+    text = f.read() 
 
     spellerrors = 0
 
@@ -121,7 +121,7 @@ def checker(f, outf):
     #for tree in trees:
     #    print(tree)
 
-    ## Work from here must be done using logic found at: http://www.nltk.org/book/ch05.html
+    ## Work from here must be done using logic found at: http://www.nltk.org/book/ch05.html ?
     ## Note that the subject is: Do you agree or disagree with the following statement?
     ## "In twenty years, there will be fewer cars in use than there are today." Use reasons and examples to support your answer.
     ## 'cars', 'fewer', should be in there. Along with perhaps 'twenty' or '20'
@@ -167,8 +167,8 @@ def checker(f, outf):
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
-    output = (str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + "\t" +
-             str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
+    output = (thefilename + "\t" + str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + 
+             "\t" + str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
     
     print(output)
 
@@ -202,7 +202,7 @@ if __name__ == '__main__':
             filename = os.path.join(subdir, file)
             print(filename)
             f = open(filename, 'r')
-            checker(f, outputfile)
+            checker(f, outputfile, file)
             f.close
 
     outputfile.close()
