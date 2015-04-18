@@ -179,11 +179,11 @@ def checker(f, outf):
 
 if __name__ == '__main__':
 
-    statfilename = 'input/training/trained_statistics.txt'
-    outputfile = open('output\\output.txt','w')
+    statfilename = os.path.join('input','training','trained_statistics.txt')
+    outputfile = open(os.path.join('output','output.txt'),'w')
     
     if os.path.isfile(statfilename) != True:
-        for subdir, dirs, files in os.walk('input/training/original'):
+        for subdir, dirs, files in os.walk(os.path.join('input','training','original')):
             for file in files:
                 filename = os.path.join(subdir, file)
                 f = open(filename, 'r')
@@ -197,7 +197,7 @@ if __name__ == '__main__':
 
     print(statistics)
     
-    for subdir, dirs, files in os.walk('input/test'):
+    for subdir, dirs, files in os.walk(os.path.join('input','test')):
         for file in files:
             filename = os.path.join(subdir, file)
             print(filename)
