@@ -91,7 +91,7 @@ def checker(f, outf, thefilename):
         spellerrors = spellerrors + 1;        
 
     t = chkr.get_text()
-    print("\n" + t)
+    # print("\n" + t)
 
     ## Useless code?
     #print("Trying to print semantics")
@@ -103,18 +103,18 @@ def checker(f, outf, thefilename):
     ## This divides it into a per-sentence item list.
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     sentencearray = sent_detector.tokenize(t.strip())
-    print('\n-----\n'.join(sentencearray))
+    # print('\n-----\n'.join(sentencearray))
 
     ## This splits everything up into seperate words.
     tokenized = TreebankWordTokenizer().tokenize(t)
-    print(tokenized)
+    # print(tokenized)
 
     ## Display spell errors found.
     print("Spellerrors: " + str(spellerrors))
     print("Words: " + str(len(tokenized)))
     print("Sentences: " + str(len(sentencearray)))
 
-    print(nltk.pos_tag(tokenized))
+    # print(nltk.pos_tag(tokenized))
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
     #trees = pdp.parse(tokenized)
@@ -128,7 +128,20 @@ def checker(f, outf, thefilename):
 
     ## Grades, 1 = low, 5 = high
     ## 1a = Spelling Mistakes
-    score_1a = 5 - max(min(int((spellerrors / 5)),4),0)
+    ## high_error_max -> high_error_min should give 3.5-5 points
+    ## medium_error_max -> high_error_min should give 2.5-3.0 points
+    ## low_error_max -> medium_error_min should give 1-2.5 points
+    if(spellerrors > statistics["medium_error_max"] ):
+        print("Higher than medium_error_max")
+        score_1a = min(int(round(0.5+((1.5/(statistics["low_error_max"] - statistics["medium_error_max"])) * spellerrors))),1)
+    elif(spellerrors > statistics["high_error_max"] ):
+        print("Higher than high_error_max")
+        score_1a = int(round(2+((1.5/(statistics["medium_error_max"] - statistics["high_error_max"])) * spellerrors)))
+    else:
+        print("Higher than high_error_min")
+        print(3.5+((1.5/(statistics["high_error_max"] - statistics["high_error_min"])) * spellerrors))
+        score_1a = max(int(round(3.5+((1.5/(statistics["high_error_max"] - statistics["high_error_min"])) * spellerrors))),5)
+    
     # print(score_1a)
 
     ## 1b = Subject-Verb agreement - agreement with respect to person and number (singular/plural)
