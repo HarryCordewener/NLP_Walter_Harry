@@ -73,15 +73,18 @@ def train(f, level):
         statistics[truelevel+"_sentence_max"] = sentencecount
     statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + spellerrors
 
-    statistics[truelevel+"_docs_total"] = statistics.get(truelevel+"_docs_total",0) + 1
+    docs_total = statistics.get(truelevel+"_docs_total",0)
+    statistics[truelevel+"_docs_total"] = docs_total + 1
 
     subverbagg_err = 0
     nomainverb_err = 0
+    verbpersentenceratio = 0.0 
     mixedverbtense_err = 0
 
     #begin sentence level operations
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
+        numwords = len(tokenized_sentence)
         pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
         ## Illegal Combinations: http://grammar.ccc.commnet.edu/grammar/sv_agr.htm
         ## Basic Principle: Singular subjects need singular verbs; plural subjects need plural verbs.
@@ -104,29 +107,44 @@ def train(f, level):
         # verb of different tenses will trigger an error, a mix including VB is not being counted as an error due toa noticed pattern in the tagging
         # split loops for logic separation
         verb_count = 0
+        mainverb_count = 0
         verbtense = ""
         for y in range(0,len(pos_tagged_sentence)):
+            mainverbmatch = re.match("VB[PZ]", pos_tagged_sentence[y][1])
             verbmatch = re.match("VB*", pos_tagged_sentence[y][1])
             if verbmatch:
                 verb_count = verb_count + 1
+            if mainverbmatch:
+                mainverb_count = mainverb_count + 1
 
         #No verb then no main verb, no main verb error
-        if(verb_count < 1):
+        if(mainverb_count < 1):
             nomainverb_err = nomainverb_err + 1
+        #sum up per sentence verb ratio
+        verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
+    #finish calulating verb per sentence ratio by dividing by number of sentences in essay
+    verbpersentenceratio = verbpersentenceratio / sentencecount
 
-    if( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31)) ):
+    if(( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31))) or (statistics.get(truelevel+"_subverbagg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
-    if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0) ):
+    if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0)):
         statistics[truelevel+"_subverbagg_max"] = subverbagg_err
     statistics[truelevel+"_subverbagg_total"] = statistics.get(truelevel+"_subverbagg_total",0) + subverbagg_err
     
     #verb stats
-    if( nomainverb_err < statistics.get(truelevel+"_nomainverb_min",pow(2,31))):
+    if(( nomainverb_err < statistics.get(truelevel+"_nomainverb_min",pow(2,31))) or (statistics.get(truelevel+"_nomainverb_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_nomainverb_min"] = nomainverb_err
     if( nomainverb_err > statistics.get(truelevel+"_nomainverb_max",0) ):
         statistics[truelevel+"_nomainverb_max"] = nomainverb_err
     statistics[truelevel+"_nomainverb_total"] = statistics.get(truelevel+"_nomainverb_total",0) + nomainverb_err
+    statistics[truelevel+"_nomainverb_avg"] = ((docs_total * statistics.get(truelevel+"_nomainverb_avg",0)) + nomainverb_err)/(docs_total + 1)
 
+    if(( verbpersentenceratio < statistics.get(truelevel+"_vpsratio_min",pow(2,31))) or (statistics.get(truelevel+"_vpsratio_min",pow(2,31)) <=0)):
+        statistics[truelevel+"_vpsratio_min"] = verbpersentenceratio
+    if( verbpersentenceratio > statistics.get(truelevel+"_vpsratio_max",0)):
+        statistics[truelevel+"_vpsratio_max"] = verbpersentenceratio
+    statistics[truelevel+"_vpsratio"] = ((docs_total * statistics.get(truelevel+"_vpsratio",0)) + verbpersentenceratio)/(docs_total + 1)
+    
     return
 
 def checker(f, outf, thefilename):
