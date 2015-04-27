@@ -329,9 +329,10 @@ if __name__ == '__main__':
     else:
         json1_file = open(statfilename,'r')
         statistics = json.load(json1_file)
+        print("Using cache file " + statfilename)
 
     # print(statistics)
-    
+    print("Running program on files in " + os.path.join('input','test')) 
     for subdir, dirs, files in os.walk(os.path.join('input','test')):
         for file in files:
             filename = os.path.join(subdir, file)
@@ -340,6 +341,5 @@ if __name__ == '__main__':
             checker(f, outputfile, file)
             f.close
 
-    outputfile.close()
-        
-    
+    outputfile.close() 
+    print("Program End. Results written to " + os.path.join('output','results.txt'))
