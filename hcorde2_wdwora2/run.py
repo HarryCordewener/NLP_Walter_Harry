@@ -139,7 +139,7 @@ def train(f, level):
     statistics[truelevel+"_nomainverb_total"] = statistics.get(truelevel+"_nomainverb_total",0) + nomainverb_err
     statistics[truelevel+"_nomainverb_avg"] = ((docs_total * statistics.get(truelevel+"_nomainverb_avg",0)) + nomainverb_err)/(docs_total + 1)
 
-    if(( verbpersentenceratio < statistics.get(truelevel+"_vpsratio_min",pow(2,31))) or (statistics.get(truelevel+"_vpsratio_min",pow(2,31)) <=0)):
+    if(( verbpersentenceratio < statistics.get(truelevel+"_vpsratio_min",pow(2,31))) or (statistics.get(truelevel+"_vpsratio_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_vpsratio_min"] = verbpersentenceratio
     if( verbpersentenceratio > statistics.get(truelevel+"_vpsratio_max",0)):
         statistics[truelevel+"_vpsratio_max"] = verbpersentenceratio
@@ -302,7 +302,7 @@ def checker(f, outf, thefilename):
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
-    output = (thefilename + "\t" + str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + 
+    output = (thefilename.split(".")[0] + "\t" + str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + 
              "\t" + str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
     
     print(output)
