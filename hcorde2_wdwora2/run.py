@@ -236,13 +236,13 @@ def checker(f, outf, thefilename):
     ## low_error_max -> medium_error_min should give 1-2.5 points
     if(spellerrors > statistics["medium_error_max"] ):
         # print("Higher than medium_error_max")
-        score_1a = min(int(round(0.5+((1.5/(statistics["low_error_max"] - statistics["medium_error_max"])) * spellerrors))),1)
+        score_1a = max(int(round(0.5+((1.5/(statistics["low_error_max"] - statistics["medium_error_max"])) * spellerrors))),1)
     elif(spellerrors > statistics["high_error_max"] ):
         # print("Higher than high_error_max")
         score_1a = int(round(2+((1.5/(statistics["medium_error_max"] - statistics["high_error_max"])) * spellerrors)))
     else:
         # print("Higher than high_error_min")
-        score_1a = max(int(round(3.5+((1.5/(statistics["high_error_max"] - statistics["high_error_min"])) * spellerrors))),5)
+        score_1a = min(int(round(3.5+((1.5/(statistics["high_error_max"] - statistics["high_error_min"])) * spellerrors))),5)
     
     # print(score_1a)
 
@@ -254,11 +254,11 @@ def checker(f, outf, thefilename):
     ## be not agree is incorrect. Normally the verb to be is not followed by another infinitival
     ## verb, but either a participle or a progressive tense.
     if(nomainverb_err > statistics["medium_nomainverb_max"] ):
-        score_1c = min(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
+        score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
     elif(nomainverb_err > statistics["high_nomainverb_max"] ):
         score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
     else:
-        score_1c = max(int(round(3.5+((1.5/(statistics["high_nomainverb_max"] - statistics["high_nomainverb_min"])) * nomainverb_err))),5)
+        score_1c = min(int(round(3.5+((1.5/(statistics["high_nomainverb_max"] - statistics["high_nomainverb_min"])) * nomainverb_err))),5)
 
     score_1c = max(5-(nomainverb_err),1)
 
@@ -287,13 +287,13 @@ def checker(f, outf, thefilename):
     sentencenum = len(sentencearray)
     if(sentencenum > statistics["medium_sentence_max"] ):
         # print("Higher than medium_sentence_max")
-        score_3a = min(int(round(0.5+((1.5/(statistics["low_sentence_max"] - statistics["medium_sentence_max"])) * sentencenum))),1)
+        score_3a = max(int(round(0.5+((1.5/(statistics["low_sentence_max"] - statistics["medium_sentence_max"])) * sentencenum))),1)
     elif(sentencenum > statistics["high_sentence_max"] ):
         # print("Higher than high_sentence_max")
         score_3a = int(round(2+((1.5/(statistics["medium_sentence_max"] - statistics["high_sentence_max"])) * sentencenum)))
     else:
         # print("Higher than high_sentence_min")
-        score_3a = max(int(round(3.5+((1.5/(statistics["high_sentence_max"] - statistics["high_sentence_min"])) * sentencenum))),5)
+        score_3a = min(int(round(3.5+((1.5/(statistics["high_sentence_max"] - statistics["high_sentence_min"])) * sentencenum))),5)
     if(sentencenum < 10):
         score_3a = 1
     
