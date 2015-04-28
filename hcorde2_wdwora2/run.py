@@ -44,8 +44,7 @@ def train(f, level):
     if level.find("medium") != -1: truelevel = "medium"
     if truelevel == "": return # We are not looking at a proper file
     if str(f).find(".txt") == -1: return # We are not looking at a proper file
-    print("This " + truelevel + " level file, " + str(f) + ",is good to go.")
-
+    print("This file, " + f.name + ", is good to go.")
     text = f.read() 
 
     spellerrors = 0
@@ -124,7 +123,7 @@ def train(f, level):
         verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
     #finish calulating verb per sentence ratio by dividing by number of sentences in essay
     verbpersentenceratio = verbpersentenceratio / sentencecount
-
+    print(verbpersentenceratio)
     if(( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31))) or (statistics.get(truelevel+"_subverbagg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
     if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0)):
@@ -155,6 +154,8 @@ def checker(f, outf, thefilename):
     subverbagg_err = 0
     spellerrors = 0
     nomainverb_err = 0
+    verbpersentenceratio = 0.0
+    mixedverbtense_err = 0
 
     my_spell_checker = MySpellChecker(max_dist=1)
     chkr = SpellChecker("en_US", text)
@@ -176,6 +177,7 @@ def checker(f, outf, thefilename):
     ## This divides it into a per-sentence item list.
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     sentencearray = sent_detector.tokenize(t.strip())
+    sentencecount = len(sentencearray)
     # print('\n-----\n'.join(sentencearray))
 
     ## This splits everything up into seperate words.
@@ -186,9 +188,9 @@ def checker(f, outf, thefilename):
     # print("Spellerrors: " + str(spellerrors))
     # print("Words: " + str(len(tokenized)))
     # print("Sentences: " + str(len(sentencearray)))
-
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
+        numwords = len(tokenized_sentence)
         pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
         #print(pos_tagged_sentence)
         ## Illegal Combinations: http://grammar.ccc.commnet.edu/grammar/sv_agr.htm
@@ -208,16 +210,21 @@ def checker(f, outf, thefilename):
                 # print("\nHOW DARE YOU!!!!\n")
                 subverbagg_err = subverbagg_err + 1
         verb_count = 0
+        mainverb_count = 0
         verbtense = ""
         for y in range(0,len(pos_tagged_sentence)):
+            mainverbmatch = re.match("VB[PZ]", pos_tagged_sentence[y][1])
             verbmatch = re.match("VB*", pos_tagged_sentence[y][1])
             if verbmatch:
                 verb_count = verb_count + 1
+            if mainverbmatch:
+                mainverb_count = mainverb_count + 1
 
         #No verb then no main verb, no main verb error
-        if(verb_count < 1):
+        if(mainverb_count < 1):
             nomainverb_err = nomainverb_err + 1
-    
+        verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
+    verbpersentenceratio = verbpersentenceratio / sentencecount
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
     #trees = pdp.parse(tokenized)
@@ -253,14 +260,50 @@ def checker(f, outf, thefilename):
     ## e.g. an auxiliary? For example, in the example of low essay above, the sequence will
     ## be not agree is incorrect. Normally the verb to be is not followed by another infinitival
     ## verb, but either a participle or a progressive tense.
-    if(nomainverb_err > statistics["medium_nomainverb_max"] ):
-        score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
-    elif(nomainverb_err > statistics["high_nomainverb_max"] ):
-        score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
+    #print(verbpersentenceratio)
+    #print(statistics["high_vpsratio"]) 
+    #print(statistics["medium_vpsratio"])
+    #print(statistics["low_vpsratio"])
+    ofhigh = statistics["high_vpsratio"]*0.15
+    ofmedium = statistics["medium_vpsratio"]*0.15
+    oflow = statistics["low_vpsratio"]*0.15
+    
+    vdiff_highup = abs(verbpersentenceratio - (statistics["high_vpsratio"] + ofhigh))
+    vdiff_high = abs(verbpersentenceratio - statistics["high_vpsratio"])
+    vdiff_highlow = abs(verbpersentenceratio - (statistics["high_vpsratio"] - ofhigh))
+    vdiff_mediumup = abs(verbpersentenceratio - (statistics["medium_vpsratio"] + ofmedium))
+    vdiff_medium = abs(verbpersentenceratio - statistics["medium_vpsratio"])
+    vdiff_mediumlow = abs(verbpersentenceratio - (statistics["medium_vpsratio"] - ofmedium))
+    vdiff_lowup = abs(verbpersentenceratio - (statistics["low_vpsratio"] + oflow))
+    vdiff_low = abs(verbpersentenceratio - statistics["low_vpsratio"])
+    vdiff_lowlow = abs(verbpersentenceratio - (statistics["low_vpsratio"] - oflow))
+  
+    min_diff = min(vdiff_lowlow, vdiff_lowup, vdiff_low)
+    if( min_diff == vdiff_lowlow):
+        score_1c = 1
     else:
-        score_1c = min(int(round(3.5+((1.5/(statistics["high_nomainverb_max"] - statistics["high_nomainverb_min"])) * nomainverb_err))),5)
+        min_diff = min(vdiff_low, vdiff_medium, vdiff_mediumup)
+        if( min_diff == vdiff_low):
+            score_1c = 2
+        else:
+            min_diff = min(vdiff_mediumlow, vdiff_medium, vdiff_highup)
+            if( min_diff == vdiff_mediumlow or min_diff == vdiff_medium):
+                score_1c = 3
+            else:
+                min_diff = min(vdiff_highup,vdiff_highlow)
+                if( min_diff == vdiff_highlow):
+                    score_1c = 5
+                else:
+                    score_1c = 4
 
-    score_1c = max(5-(nomainverb_err),1)
+    #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
+    #    score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
+    #elif(nomainverb_err > statistics["high_nomainverb_max"] ):
+    #    score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
+    #else:
+    #    score_1c = min(int(round(3.5+((1.5/(statistics["high_nomainverb_max"] - statistics["high_nomainverb_min"])) * nomainverb_err))),5)
+
+    #score_1c = max(5-(nomainverb_err),1)
 
     ## 1d =  Sentence formation - are the sentences formed properly? i.e. beginning and ending
     ## properly, is the word order correct, are the constituents formed properly? are there
@@ -302,8 +345,8 @@ def checker(f, outf, thefilename):
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
-    output = (thefilename.split(".")[0] + "\t" + str(score_1a) + "\t" + str(score_1b) + "\t" + str(score_1c) + "\t" + str(score_1d) + 
-             "\t" + str(score_2a) + "\t" + str(score_2b) + "\t" + str(score_3a) + "\t" + str(score_final) + "\tunknown")
+    output = (thefilename.split(".")[0] + "\t\t" + str(score_1a) + "\t" + str(score_1b) + "\t\t" + str(score_1c) + "\t\t" + str(score_1d) + 
+             "\t\t" + str(score_2a) + "\t\t" + str(score_2b) + "\t\t" + str(score_3a) + "\t" + str(score_final) + "\t\tunknown")
     
     print(output)
 
@@ -333,6 +376,9 @@ if __name__ == '__main__':
 
     # print(statistics)
     print("Running program on files in " + os.path.join('input','test')) 
+    headeroutput = ("Filename\t" + "1A: Spelling" + "\t" + "1B: SVA" + "\t" + "1C: Verbs" + "\t" + "1D: Form" + 
+            "\t" + "2A: Meaning" + "\t" + "2B: Topic" + "\t" + "3A: Sentences" + "\t" + "Final Score" + "\tGrade")
+    print(headeroutput)
     for subdir, dirs, files in os.walk(os.path.join('input','test')):
         for file in files:
             filename = os.path.join(subdir, file)
