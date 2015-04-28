@@ -21,7 +21,23 @@ Example:
 -------------------------------------------------------------------------
 --->TECHNIQUE<-----------------------------------------------------------
 
-*Fill in with info*
+Quoted from the sourcecode:
+
+## Illegal Combinations: http://grammar.ccc.commnet.edu/grammar/sv_agr.htm
+## Basic Principle: Singular subjects need singular verbs; plural subjects need plural verbs.
+## My brother is a nutritionist. My sisters are mathematicians.
+## So we are counting errors for:
+##  VBP / VBZ followed by NNS / NNPS
+## We can't check for verb plural using the tags existing.
+
+# attempt to do stats on the verb tenses, mainly check if there is a main verb and see if all verbs in a sentence are the same tense
+# a sentence must have a least 1 VB* for it to count as having a main verb
+# verb of different tenses will trigger an error, a mix including VB is not being counted as an error due toa noticed pattern in the tagging
+# split loops for logic separation
+
+# No verb then no main verb, no main verb error
+
+Checking error numbers after that for the 'low', 'medium' and 'high' levels with mins and maxes creates ranges in which the grading works based on the training documents. 
 
 -------------------------------------------------------------------------
 --->TODO<----------------------------------------------------------------
