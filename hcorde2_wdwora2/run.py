@@ -123,7 +123,7 @@ def train(f, level):
         verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
     #finish calulating verb per sentence ratio by dividing by number of sentences in essay
     verbpersentenceratio = verbpersentenceratio / sentencecount
-    print(verbpersentenceratio)
+    #print(verbpersentenceratio)
     if(( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31))) or (statistics.get(truelevel+"_subverbagg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
     if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0)):
