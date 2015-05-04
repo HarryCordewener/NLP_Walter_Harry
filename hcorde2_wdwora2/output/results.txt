@@ -1,3 +1,0 @@
-14397.txt	4	2	5	0	0	0	5	21	unknown
-145666.txt	4	5	5	0	0	0	1	16	unknown
-23897.txt	4	5	4	0	0	0	5	23	unknown
