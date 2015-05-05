@@ -74,8 +74,8 @@ def train(f, level):
     statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + sentencecount
 
     docs_total = statistics.get(truelevel+"_docs_total",0)
-    statistics[truelevel+"_docs_total"] = docs_total + 1
-
+    docs_total = statistics[truelevel+"_docs_total"] = docs_total + 1
+   
     subverbagg_err = 0
     #verb counting vars for entire doc
     doc_vps_average = 0.0
@@ -497,7 +497,7 @@ def checker(f, outf, thefilename):
         score_1c = score_1c + 1.5
     else:
         score_1c = score_1c + 0.5
-    print(score_1c)
+    #print(score_1c)
     #Verb per Sentence Scoring
     if(min_vps_diff == high_vps_diff):
         score_1c = score_1c + 2.5
@@ -506,7 +506,7 @@ def checker(f, outf, thefilename):
     else:
         score_1c = score_1c + 0.5
    
-    print(score_1c)
+    #print(score_1c)
     score_1c = int(score_1c)
 
     #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
