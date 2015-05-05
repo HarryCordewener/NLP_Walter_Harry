@@ -56,7 +56,7 @@ def train(f, level):
         err.replace(my_spell_checker.replace(err.word))
         spellerrors = spellerrors + 1;
     
-    if( spellerrors < statistics.get(truelevel+"_error_min",pow(3,31)) ):
+    if( spellerrors < statistics.get(truelevel+"_error_min",pow(3,31)) or statistics.get(truelevel+"_error_min") <= 0):
         statistics[truelevel+"_error_min"] = spellerrors
     if( spellerrors > statistics.get(truelevel+"_error_max",0) ):
         statistics[truelevel+"_error_max"] = spellerrors
@@ -66,19 +66,23 @@ def train(f, level):
     sentencearray = sent_detector.tokenize(text.strip())
     sentencecount = len(sentencearray)
 
-    if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) ):
+    if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) or statistics.get(truelevel+"_sentence_min") <= 0):
         statistics[truelevel+"_sentence_min"] = sentencecount
     if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
         statistics[truelevel+"_sentence_max"] = sentencecount
-    statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + spellerrors
+    statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + sentencecount
 
     docs_total = statistics.get(truelevel+"_docs_total",0)
     statistics[truelevel+"_docs_total"] = docs_total + 1
+    docs_total = docs_total + 1 
 
     subverbagg_err = 0
-    nomainverb_err = 0
-    verbpersentenceratio = 0.0 
-    mixedverbtense_err = 0
+    #verb counting vars for entire doc
+    doc_vps_average = 0.0
+    nmv_error = 0
+    mvt_error = 0
+    vps_average = 0.0
+    
 
     #begin sentence level operations
     for sentence in sentencearray:
@@ -118,12 +122,11 @@ def train(f, level):
 
         #No verb then no main verb, no main verb error
         if(mainverb_count < 1):
-            nomainverb_err = nomainverb_err + 1
+            nmv_error = nmv_error + 1
         #sum up per sentence verb ratio
-        verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
+        vps_average = vps_average + (verb_count / numwords)
     #finish calulating verb per sentence ratio by dividing by number of sentences in essay
-    verbpersentenceratio = verbpersentenceratio / sentencecount
-    #print(verbpersentenceratio)
+    doc_vps_average = vps_average / sentencecount
     if(( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31))) or (statistics.get(truelevel+"_subverbagg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
     if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0)):
@@ -131,18 +134,18 @@ def train(f, level):
     statistics[truelevel+"_subverbagg_total"] = statistics.get(truelevel+"_subverbagg_total",0) + subverbagg_err
     
     #verb stats
-    if(( nomainverb_err < statistics.get(truelevel+"_nomainverb_min",pow(2,31))) or (statistics.get(truelevel+"_nomainverb_min",pow(2,31)) <= 0)):
-        statistics[truelevel+"_nomainverb_min"] = nomainverb_err
-    if( nomainverb_err > statistics.get(truelevel+"_nomainverb_max",0) ):
-        statistics[truelevel+"_nomainverb_max"] = nomainverb_err
-    statistics[truelevel+"_nomainverb_total"] = statistics.get(truelevel+"_nomainverb_total",0) + nomainverb_err
-    statistics[truelevel+"_nomainverb_avg"] = ((docs_total * statistics.get(truelevel+"_nomainverb_avg",0)) + nomainverb_err)/(docs_total + 1)
+    if(( nmv_error < statistics.get(truelevel+"_nmv_min",pow(2,31))) or (statistics.get(truelevel+"_nmv_min",pow(2,31)) <= 0)):
+        statistics[truelevel+"_nmv_min"] = nmv_error  
+    if( nmv_error > statistics.get(truelevel+"_nmv_max",0) ):
+        statistics[truelevel+"_nmv_max"] = nmv_error
+    statistics[truelevel+"_nmv_total"] = statistics.get(truelevel+"_nmv_total",0) + nmv_error
+    statistics[truelevel+"_nmv_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_nmv_avg",0)) + nmv_error)/(docs_total)
 
-    if(( verbpersentenceratio < statistics.get(truelevel+"_vpsratio_min",pow(2,31))) or (statistics.get(truelevel+"_vpsratio_min",pow(2,31)) <= 0)):
-        statistics[truelevel+"_vpsratio_min"] = verbpersentenceratio
-    if( verbpersentenceratio > statistics.get(truelevel+"_vpsratio_max",0)):
-        statistics[truelevel+"_vpsratio_max"] = verbpersentenceratio
-    statistics[truelevel+"_vpsratio"] = ((docs_total * statistics.get(truelevel+"_vpsratio",0)) + verbpersentenceratio)/(docs_total + 1)
+    if(( doc_vps_average < statistics.get(truelevel+"_vps_avg_min",pow(2,31))) or (statistics.get(truelevel+"_vps_avg_min",pow(2,31)) <= 0)):
+        statistics[truelevel+"_vps_avg_min"] = doc_vps_average
+    if( doc_vps_average > statistics.get(truelevel+"_vps_avg_max",0)):
+        statistics[truelevel+"_vps_avg_max"] = doc_vps_average
+    statistics[truelevel+"_vps_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_vps_avg",0)) + doc_vps_average)/(docs_total)
     
     return
 
@@ -261,22 +264,22 @@ def checker(f, outf, thefilename):
     ## be not agree is incorrect. Normally the verb to be is not followed by another infinitival
     ## verb, but either a participle or a progressive tense.
     #print(verbpersentenceratio)
-    #print(statistics["high_vpsratio"]) 
-    #print(statistics["medium_vpsratio"])
-    #print(statistics["low_vpsratio"])
-    ofhigh = statistics["high_vpsratio"]*0.15
-    ofmedium = statistics["medium_vpsratio"]*0.15
-    oflow = statistics["low_vpsratio"]*0.15
+    #print(statistics["high_vps_avg"]) 
+    #print(statistics["medium_vps_avg"])
+    #print(statistics["low_vps_avg"])
+    ofhigh = statistics["high_vps_avg"]*0.15
+    ofmedium = statistics["medium_vps_avg"]*0.15
+    oflow = statistics["low_vps_avg"]*0.15
     
-    vdiff_highup = abs(verbpersentenceratio - (statistics["high_vpsratio"] + ofhigh))
-    vdiff_high = abs(verbpersentenceratio - statistics["high_vpsratio"])
-    vdiff_highlow = abs(verbpersentenceratio - (statistics["high_vpsratio"] - ofhigh))
-    vdiff_mediumup = abs(verbpersentenceratio - (statistics["medium_vpsratio"] + ofmedium))
-    vdiff_medium = abs(verbpersentenceratio - statistics["medium_vpsratio"])
-    vdiff_mediumlow = abs(verbpersentenceratio - (statistics["medium_vpsratio"] - ofmedium))
-    vdiff_lowup = abs(verbpersentenceratio - (statistics["low_vpsratio"] + oflow))
-    vdiff_low = abs(verbpersentenceratio - statistics["low_vpsratio"])
-    vdiff_lowlow = abs(verbpersentenceratio - (statistics["low_vpsratio"] - oflow))
+    vdiff_highup = abs(verbpersentenceratio - (statistics["high_vps_avg"] + ofhigh))
+    vdiff_high = abs(verbpersentenceratio - statistics["high_vps_avg"])
+    vdiff_highlow = abs(verbpersentenceratio - (statistics["high_vps_avg"] - ofhigh))
+    vdiff_mediumup = abs(verbpersentenceratio - (statistics["medium_vps_avg"] + ofmedium))
+    vdiff_medium = abs(verbpersentenceratio - statistics["medium_vps_avg"])
+    vdiff_mediumlow = abs(verbpersentenceratio - (statistics["medium_vps_avg"] - ofmedium))
+    vdiff_lowup = abs(verbpersentenceratio - (statistics["low_vps_avg"] + oflow))
+    vdiff_low = abs(verbpersentenceratio - statistics["low_vps_avg"])
+    vdiff_lowlow = abs(verbpersentenceratio - (statistics["low_vps_avg"] - oflow))
   
     min_diff = min(vdiff_lowlow, vdiff_lowup, vdiff_low)
     if( min_diff == vdiff_lowlow):
