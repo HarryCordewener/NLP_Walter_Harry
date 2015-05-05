@@ -18,7 +18,6 @@ from nltk.grammar import CFG, Nonterminal, DependencyGrammar
 from nltk.metrics.distance import edit_distance
 from itertools import chain
 
-
 statistics = dict()
 
 class MySpellChecker():
