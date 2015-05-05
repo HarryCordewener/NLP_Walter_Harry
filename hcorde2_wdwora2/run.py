@@ -18,23 +18,6 @@ from nltk.grammar import CFG, Nonterminal, DependencyGrammar
 from nltk.metrics.distance import edit_distance
 from itertools import chain
 
-# Stanford setup
-from nltk.parse import stanford
-# os.environ['JAVAHOME'] = "C:\\Program Files\\Java\\jdk1.8.0_20\\bin\\java.exe"
-
-os.environ['STANFORD_PARSER'] = os.path.abspath("stanford/stanford-parser-full-2015-04-20/stanford-parser.jar")
-os.environ['STANFORD_MODELS'] = os.path.abspath("stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar")
-modelpath = os.path.abspath("stanford/englishPCFG.ser.gz")
-parser = stanford.StanfordParser(model_path=modelpath)
-sentences = parser.raw_parse_sents(("Hello, My name is Melroy.", "What is your name?"))
-print (sentences)
-
-
-# GUI
-for line in sentences:
-    for sentence in line:
-        sentence.draw()
-
 
 statistics = dict()
 
@@ -362,8 +345,8 @@ def checker(f, outf, thefilename):
 
     ## Final Score = 1a + 1b + 1c + 2 ∗ 1d + 2 ∗ 2a + 3 ∗ 2b + 2 ∗ 3a
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
-    output = (thefilename.split(".")[0] + "\t\t" + str(score_1a) + "\t\t" + str(score_1b) + "\t\t" + str(score_1c) + "\t\t" + str(score_1d) + 
-             "\t\t" + str(score_2a) + "\t\t" + str(score_2b) + "\t\t" + str(score_3a) + "\t\t" + str(score_final) + "\tunknown")
+    output = (thefilename.split(".")[0] + "\t\t" + str(score_1a) + "\t" + str(score_1b) + "\t\t" + str(score_1c) + "\t\t" + str(score_1d) + 
+             "\t\t" + str(score_2a) + "\t\t" + str(score_2b) + "\t\t" + str(score_3a) + "\t" + str(score_final) + "\t\tunknown")
     
     print(output)
 
