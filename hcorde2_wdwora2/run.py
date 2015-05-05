@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ##
 ## Sources found in here: http://stackoverflow.com/questions/22073688/python-spell-corrector-using-ntlk
 ##
