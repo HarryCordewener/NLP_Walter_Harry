@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ##
 ## Sources found in here: http://stackoverflow.com/questions/22073688/python-spell-corrector-using-ntlk
 ##
@@ -57,7 +58,7 @@ def train(f, level):
         err.replace(my_spell_checker.replace(err.word))
         spellerrors = spellerrors + 1;
     
-    if( spellerrors < statistics.get(truelevel+"_error_min",pow(3,31)) ):
+    if( spellerrors < statistics.get(truelevel+"_error_min",pow(3,31)) or statistics.get(truelevel+"_error_min") <= 0):
         statistics[truelevel+"_error_min"] = spellerrors
     if( spellerrors > statistics.get(truelevel+"_error_max",0) ):
         statistics[truelevel+"_error_max"] = spellerrors
@@ -67,19 +68,21 @@ def train(f, level):
     sentencearray = sent_detector.tokenize(text.strip())
     sentencecount = len(sentencearray)
 
-    if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) ):
+    if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) or statistics.get(truelevel+"_sentence_min") <= 0):
         statistics[truelevel+"_sentence_min"] = sentencecount
     if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
         statistics[truelevel+"_sentence_max"] = sentencecount
-    statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + spellerrors
+    statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + sentencecount
 
     docs_total = statistics.get(truelevel+"_docs_total",0)
     statistics[truelevel+"_docs_total"] = docs_total + 1
 
     subverbagg_err = 0
-    nomainverb_err = 0
-    verbpersentenceratio = 0.0 
-    mixedverbtense_err = 0
+    #verb counting vars for entire doc
+    doc_vps_average = 0.0
+    nmv_error = 0
+    mvt_error = 0
+    vps_average = 0.0
 
     prevsentence = 0
     #begin sentence level operations
@@ -219,15 +222,13 @@ def train(f, level):
 
         #No verb then no main verb, no main verb error
         if(mainverb_count < 1):
-            nomainverb_err = nomainverb_err + 1
+            nmv_error = nmv_error + 1
         #sum up per sentence verb ratio
-        verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
-
-        # ENDFOR
-                
+        vps_average = vps_average + (verb_count / numwords)
     #finish calulating verb per sentence ratio by dividing by number of sentences in essay
-    verbpersentenceratio = verbpersentenceratio / sentencecount
-    #print(verbpersentenceratio)
+    doc_vps_average = vps_average / sentencecount
+    #finish calulating verb per sentence ratio by dividing by number of sentences in essay
+    doc_vps_average = vps_average / sentencecount
     if(( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31))) or (statistics.get(truelevel+"_subverbagg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
     if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0)):
@@ -235,18 +236,19 @@ def train(f, level):
     statistics[truelevel+"_subverbagg_total"] = statistics.get(truelevel+"_subverbagg_total",0) + subverbagg_err
     
     #verb stats
-    if(( nomainverb_err < statistics.get(truelevel+"_nomainverb_min",pow(2,31))) or (statistics.get(truelevel+"_nomainverb_min",pow(2,31)) <= 0)):
-        statistics[truelevel+"_nomainverb_min"] = nomainverb_err
-    if( nomainverb_err > statistics.get(truelevel+"_nomainverb_max",0) ):
-        statistics[truelevel+"_nomainverb_max"] = nomainverb_err
-    statistics[truelevel+"_nomainverb_total"] = statistics.get(truelevel+"_nomainverb_total",0) + nomainverb_err
-    statistics[truelevel+"_nomainverb_avg"] = ((docs_total * statistics.get(truelevel+"_nomainverb_avg",0)) + nomainverb_err)/(docs_total + 1)
+    if(( nmv_error < statistics.get(truelevel+"_nmv_min",pow(2,31))) or (statistics.get(truelevel+"_nmv_min",pow(2,31)) <= 0)):
+        statistics[truelevel+"_nmv_min"] = nmv_error  
+    if( nmv_error > statistics.get(truelevel+"_nmv_max",0) ):
+        statistics[truelevel+"_nmv_max"] = nmv_error
+    statistics[truelevel+"_nmv_total"] = statistics.get(truelevel+"_nmv_total",0) + nmv_error
+    statistics[truelevel+"_doc_nmv_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_doc_nmv_avg",0)) + nmv_error)/(docs_total)
 
-    if(( verbpersentenceratio < statistics.get(truelevel+"_vpsratio_min",pow(2,31))) or (statistics.get(truelevel+"_vpsratio_min",pow(2,31)) <= 0)):
-        statistics[truelevel+"_vpsratio_min"] = verbpersentenceratio
-    if( verbpersentenceratio > statistics.get(truelevel+"_vpsratio_max",0)):
-        statistics[truelevel+"_vpsratio_max"] = verbpersentenceratio
-    statistics[truelevel+"_vpsratio"] = ((docs_total * statistics.get(truelevel+"_vpsratio",0)) + verbpersentenceratio)/(docs_total + 1)
+    if(( doc_vps_average < statistics.get(truelevel+"_vps_avg_min",pow(2,31))) or (statistics.get(truelevel+"_vps_avg_min",pow(2,31)) <= 0)):
+        statistics[truelevel+"_vps_avg_min"] = doc_vps_average
+    if( doc_vps_average > statistics.get(truelevel+"_vps_avg_max",0)):
+        statistics[truelevel+"_vps_avg_max"] = doc_vps_average
+    statistics[truelevel+"_vps_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_vps_avg",0)) + doc_vps_average)/(docs_total)
+    
     return
 
 def checker(f, outf, thefilename):
@@ -256,9 +258,11 @@ def checker(f, outf, thefilename):
 
     subverbagg_err = 0
     spellerrors = 0
-    nomainverb_err = 0
-    verbpersentenceratio = 0.0
-    mixedverbtense_err = 0
+    #verb counting vars for entire doc
+    doc_vps_average = 0.0
+    nmv_error = 0
+    mvt_error = 0
+    vps_average = 0.0
 
     my_spell_checker = MySpellChecker(max_dist=1)
     chkr = SpellChecker("en_US", text)
@@ -419,14 +423,9 @@ def checker(f, outf, thefilename):
 
         #No verb then no main verb, no main verb error
         if(mainverb_count < 1):
-            nomainverb_err = nomainverb_err + 1
-        verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
-        
-        ## 
-        prevsentence = pos_tagged_sentence
-
-        ## ENDFOR 
-    verbpersentenceratio = verbpersentenceratio / sentencecount
+            nmv_error= nmv_error + 1
+        vps_average = vps_average + (verb_count / numwords)
+    doc_vps_average = vps_average / sentencecount
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
     #trees = pdp.parse(tokenized)
@@ -462,41 +461,59 @@ def checker(f, outf, thefilename):
     ## e.g. an auxiliary? For example, in the example of low essay above, the sequence will
     ## be not agree is incorrect. Normally the verb to be is not followed by another infinitival
     ## verb, but either a participle or a progressive tense.
-    #print(verbpersentenceratio)
-    #print(statistics["high_vpsratio"]) 
-    #print(statistics["medium_vpsratio"])
-    #print(statistics["low_vpsratio"])
-    ofhigh = statistics["high_vpsratio"]*0.15
-    ofmedium = statistics["medium_vpsratio"]*0.15
-    oflow = statistics["low_vpsratio"]*0.15
+    score_1c = 0.0
+    #print(doc_vps_average)
+    #print(statistics["high_vps_avg"]) 
+    #print(statistics["medium_vps_avg"])
+    #print(statistics["low_vps_avg"])
+    doc_nmv_avg = nmv_error / sentencecount
+    high_nmv_doc_avg = statistics["high_nmv_total"] / statistics["high_sentence_total"]
+    medium_nmv_doc_avg = statistics["medium_nmv_total"] / statistics["medium_sentence_total"]
+    low_nmv_doc_avg = statistics["low_nmv_total"] / statistics["low_sentence_total"]
     
-    vdiff_highup = abs(verbpersentenceratio - (statistics["high_vpsratio"] + ofhigh))
-    vdiff_high = abs(verbpersentenceratio - statistics["high_vpsratio"])
-    vdiff_highlow = abs(verbpersentenceratio - (statistics["high_vpsratio"] - ofhigh))
-    vdiff_mediumup = abs(verbpersentenceratio - (statistics["medium_vpsratio"] + ofmedium))
-    vdiff_medium = abs(verbpersentenceratio - statistics["medium_vpsratio"])
-    vdiff_mediumlow = abs(verbpersentenceratio - (statistics["medium_vpsratio"] - ofmedium))
-    vdiff_lowup = abs(verbpersentenceratio - (statistics["low_vpsratio"] + oflow))
-    vdiff_low = abs(verbpersentenceratio - statistics["low_vpsratio"])
-    vdiff_lowlow = abs(verbpersentenceratio - (statistics["low_vpsratio"] - oflow))
-  
-    min_diff = min(vdiff_lowlow, vdiff_lowup, vdiff_low)
-    if( min_diff == vdiff_lowlow):
-        score_1c = 1
+    high_vps_avg = statistics["high_vps_avg"] 
+    medium_vps_avg = statistics["medium_vps_avg"] 
+    low_vps_avg = statistics["low_vps_avg"] 
+
+    high_vps_diff = abs(high_vps_avg - doc_vps_average)
+    medium_vps_diff = abs(medium_vps_avg - doc_vps_average)
+    low_vps_diff = abs(low_vps_avg - doc_vps_average)
+    min_vps_diff = min(high_vps_diff, medium_vps_diff, low_vps_diff)
+
+    #print(nmv_error)
+    #print(sentencecount)[M#Ä]
+    #print(doc_nmv_avg)
+    #print(high_nmv_doc_avg)
+    #print(medium_nmv_doc_avg)
+    #print(low_nmv_doc_avg)
+    high_nmv_diff = abs(high_nmv_doc_avg - doc_nmv_avg)
+    medium_nmv_diff = abs(medium_nmv_doc_avg - doc_nmv_avg)
+    low_nmv_diff = abs(low_nmv_doc_avg - doc_nmv_avg)
+    min_nmv_diff = min(high_nmv_diff, medium_nmv_diff, low_nmv_diff)
+    
+    #Main Verb Scoring
+    if(min_nmv_diff == high_nmv_diff):
+        score_1c = score_1c + 2.5
+    elif(min_nmv_diff == medium_nmv_diff):
+        score_1c = score_1c + 1.5
     else:
-        min_diff = min(vdiff_low, vdiff_medium, vdiff_mediumup)
-        if( min_diff == vdiff_low):
-            score_1c = 2
-        else:
-            min_diff = min(vdiff_mediumlow, vdiff_medium, vdiff_highup)
-            if( min_diff == vdiff_mediumlow or min_diff == vdiff_medium):
-                score_1c = 3
-            else:
-                min_diff = min(vdiff_highup,vdiff_highlow)
-                if( min_diff == vdiff_highlow):
-                    score_1c = 5
-                else:
-                    score_1c = 4
+        score_1c = score_1c + 0.5
+    print(score_1c)
+    #Verb per Sentence Scoring
+    if(min_vps_diff == high_vps_diff):
+        score_1c = score_1c + 2.5
+    elif(min_vps_diff == medium_vps_diff):
+        score_1c = score_1c + 1.5
+    else:
+        score_1c = score_1c + 0.5
+   
+    print(score_1c)
+    score_1c = int(score_1c)
+
+    #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
+    #    score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
+    #elif(nomainverb_err > statistics["high_nomainverb_max"] ):
+    #    score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
 
     #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
     #    score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
