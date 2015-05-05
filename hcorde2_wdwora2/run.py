@@ -82,7 +82,6 @@ def train(f, level):
     nmv_error = 0
     mvt_error = 0
     vps_average = 0.0
-    
 
     #begin sentence level operations
     for sentence in sentencearray:
@@ -139,7 +138,7 @@ def train(f, level):
     if( nmv_error > statistics.get(truelevel+"_nmv_max",0) ):
         statistics[truelevel+"_nmv_max"] = nmv_error
     statistics[truelevel+"_nmv_total"] = statistics.get(truelevel+"_nmv_total",0) + nmv_error
-    statistics[truelevel+"_nmv_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_nmv_avg",0)) + nmv_error)/(docs_total)
+    statistics[truelevel+"_doc_nmv_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_doc_nmv_avg",0)) + nmv_error)/(docs_total)
 
     if(( doc_vps_average < statistics.get(truelevel+"_vps_avg_min",pow(2,31))) or (statistics.get(truelevel+"_vps_avg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_vps_avg_min"] = doc_vps_average
@@ -156,9 +155,11 @@ def checker(f, outf, thefilename):
 
     subverbagg_err = 0
     spellerrors = 0
-    nomainverb_err = 0
-    verbpersentenceratio = 0.0
-    mixedverbtense_err = 0
+    #verb counting vars for entire doc
+    doc_vps_average = 0.0
+    nmv_error = 0
+    mvt_error = 0
+    vps_average = 0.0
 
     my_spell_checker = MySpellChecker(max_dist=1)
     chkr = SpellChecker("en_US", text)
@@ -225,9 +226,9 @@ def checker(f, outf, thefilename):
 
         #No verb then no main verb, no main verb error
         if(mainverb_count < 1):
-            nomainverb_err = nomainverb_err + 1
-        verbpersentenceratio = verbpersentenceratio + (verb_count / numwords)
-    verbpersentenceratio = verbpersentenceratio / sentencecount
+            nmv_error= nmv_error + 1
+        vps_average = vps_average + (verb_count / numwords)
+    doc_vps_average = vps_average / sentencecount
     ## NEEDED: A dependency grammar!
     #pdp = nltk.ProjectiveDependencyParser(groucho_dep_grammar)
     #trees = pdp.parse(tokenized)
@@ -263,41 +264,54 @@ def checker(f, outf, thefilename):
     ## e.g. an auxiliary? For example, in the example of low essay above, the sequence will
     ## be not agree is incorrect. Normally the verb to be is not followed by another infinitival
     ## verb, but either a participle or a progressive tense.
-    #print(verbpersentenceratio)
+    score_1c = 0.0
+    #print(doc_vps_average)
     #print(statistics["high_vps_avg"]) 
     #print(statistics["medium_vps_avg"])
     #print(statistics["low_vps_avg"])
-    ofhigh = statistics["high_vps_avg"]*0.15
-    ofmedium = statistics["medium_vps_avg"]*0.15
-    oflow = statistics["low_vps_avg"]*0.15
+    doc_nmv_avg = nmv_error / sentencecount
+    high_nmv_doc_avg = statistics["high_nmv_total"] / statistics["high_sentence_total"]
+    medium_nmv_doc_avg = statistics["medium_nmv_total"] / statistics["medium_sentence_total"]
+    low_nmv_doc_avg = statistics["low_nmv_total"] / statistics["low_sentence_total"]
     
-    vdiff_highup = abs(verbpersentenceratio - (statistics["high_vps_avg"] + ofhigh))
-    vdiff_high = abs(verbpersentenceratio - statistics["high_vps_avg"])
-    vdiff_highlow = abs(verbpersentenceratio - (statistics["high_vps_avg"] - ofhigh))
-    vdiff_mediumup = abs(verbpersentenceratio - (statistics["medium_vps_avg"] + ofmedium))
-    vdiff_medium = abs(verbpersentenceratio - statistics["medium_vps_avg"])
-    vdiff_mediumlow = abs(verbpersentenceratio - (statistics["medium_vps_avg"] - ofmedium))
-    vdiff_lowup = abs(verbpersentenceratio - (statistics["low_vps_avg"] + oflow))
-    vdiff_low = abs(verbpersentenceratio - statistics["low_vps_avg"])
-    vdiff_lowlow = abs(verbpersentenceratio - (statistics["low_vps_avg"] - oflow))
-  
-    min_diff = min(vdiff_lowlow, vdiff_lowup, vdiff_low)
-    if( min_diff == vdiff_lowlow):
-        score_1c = 1
+    high_vps_avg = statistics["high_vps_avg"] 
+    medium_vps_avg = statistics["medium_vps_avg"] 
+    low_vps_avg = statistics["low_vps_avg"] 
+
+    high_vps_diff = abs(high_vps_avg - doc_vps_average)
+    medium_vps_diff = abs(medium_vps_avg - doc_vps_average)
+    low_vps_diff = abs(low_vps_avg - doc_vps_average)
+    min_vps_diff = min(high_vps_diff, medium_vps_diff, low_vps_diff)
+
+    #print(nmv_error)
+    #print(sentencecount)[M#Ä]
+    #print(doc_nmv_avg)
+    #print(high_nmv_doc_avg)
+    #print(medium_nmv_doc_avg)
+    #print(low_nmv_doc_avg)
+    high_nmv_diff = abs(high_nmv_doc_avg - doc_nmv_avg)
+    medium_nmv_diff = abs(medium_nmv_doc_avg - doc_nmv_avg)
+    low_nmv_diff = abs(low_nmv_doc_avg - doc_nmv_avg)
+    min_nmv_diff = min(high_nmv_diff, medium_nmv_diff, low_nmv_diff)
+    
+    #Main Verb Scoring
+    if(min_nmv_diff == high_nmv_diff):
+        score_1c = score_1c + 2.5
+    elif(min_nmv_diff == medium_nmv_diff):
+        score_1c = score_1c + 1.5
     else:
-        min_diff = min(vdiff_low, vdiff_medium, vdiff_mediumup)
-        if( min_diff == vdiff_low):
-            score_1c = 2
-        else:
-            min_diff = min(vdiff_mediumlow, vdiff_medium, vdiff_highup)
-            if( min_diff == vdiff_mediumlow or min_diff == vdiff_medium):
-                score_1c = 3
-            else:
-                min_diff = min(vdiff_highup,vdiff_highlow)
-                if( min_diff == vdiff_highlow):
-                    score_1c = 5
-                else:
-                    score_1c = 4
+        score_1c = score_1c + 0.5
+    print(score_1c)
+    #Verb per Sentence Scoring
+    if(min_vps_diff == high_vps_diff):
+        score_1c = score_1c + 2.5
+    elif(min_vps_diff == medium_vps_diff):
+        score_1c = score_1c + 1.5
+    else:
+        score_1c = score_1c + 0.5
+   
+    print(score_1c)
+    score_1c = int(score_1c)
 
     #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
     #    score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
