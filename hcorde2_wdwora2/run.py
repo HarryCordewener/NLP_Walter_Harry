@@ -175,11 +175,11 @@ def train(f, level):
                             if( worksentence[bigramwalker-1][0] != "one" and
                                 worksentence[bigramwalker-1][0] != "1" ):
                                 wrongtheyantecedent = wrongtheyantecedent - 1
-                                
+        print(wrongtheyantecedent)                        
         if(( wrongtheyantecedent < statistics.get(truelevel+"_wrongtheyantecedent_min",pow(2,31)))
            or (statistics.get(truelevel+"_wrongtheyantecedent_min",pow(2,31)) <= 0)):
             statistics[truelevel+"_wrongtheyantecedent_min"] = wrongtheyantecedent
-        if( wrongtheyantecedent > statistics.get(truelevel+"_wrongtheyantecedent_max",0)):
+        if( wrongtheyantecedent >= statistics.get(truelevel+"_wrongtheyantecedent_max",0)):
             statistics[truelevel+"_wrongtheyantecedent_max"] = wrongtheyantecedent
         statistics[truelevel+"_wrongtheyantecedent_total"] = statistics.get(truelevel+"_wrongtheyantecedent_total",0) + wrongtheyantecedent
 
@@ -616,7 +616,7 @@ if __name__ == '__main__':
 
     # print(statistics)
     print("Running program on files in " + os.path.join('input','test')) 
-    headeroutput = ("Filename\t" + "1A: Spelling" + "\t" + "1B: SVA" + "\t" + "1C: Verbs" + "\t" + "1D: Form" + 
+    headeroutput = ("Filename\t" + "1A: Spelling" + "\t" + "1B: SVA" + "\t\t" + "1C: Verbs" + "\t" + "1D: Form" + 
             "\t" + "2A: Meaning" + "\t" + "2B: Topic" + "\t" + "3A: Sentences" + "\t" + "Final Score" + "\tGrade")
     print(headeroutput)
     for subdir, dirs, files in os.walk(os.path.join('input','test')):
