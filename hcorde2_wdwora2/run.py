@@ -28,6 +28,7 @@ stanford_parser = stanford.StanfordParser(model_path=os.path.join('stanford', 'e
 statistics = dict()
 maleantecedents = ["father", "uncle", "brother", "nephew", "mister"]
 femaleantecedents = ["mother", "aunt", "sister", "niece", "boat", "ship", "vessel", "earth", "ma'am"]
+important_words = "([Cc]ars?)|([Ff]uture)|([Pp]ast)|([Nn]ow)|([Cc]urrently)|([Bb]efore)|([Aa]fter)|([Yy]ears?)|([Tt]imes?)|([Mm]any)|([Mm]ore)|([Ff]ew)|([Ll]ess)"
 
 class MySpellChecker():
     def __init__(self, dict_name='en_US', max_dist=2):
@@ -94,10 +95,13 @@ def train(f, level):
     
     #stanford
     frag_count = 0
+    iw_count = 0
     stanford_sentences_tree = stanford_parser.raw_parse_sents(sentencearray)
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
             frag_match = re.search("FRAG", str(stanford_sentence))
+            iw_match = re.search(important_words, str(stanford_sentence))
+            iw_count = iw_count + len(iw_match)
             #print(str(stanford_sentence))
             #print('-----------------------------------')
             if frag_match:
@@ -107,6 +111,12 @@ def train(f, level):
     if( frag_count >= statistics.get(truelevel+"_frag_max",0) ):
         statistics[truelevel+"_frag_max"] = frag_count
     statistics[truelevel+"_frag_total"] = statistics.get(truelevel+"_frag_total",0) + frag_count
+    
+    if( iw_count < statistics.get(truelevel+"_iw_min",pow(2,31)) or statistics.get(truelevel+"_iw_min") <= 0):
+        statistics[truelevel+"_iw_min"] = iw_count
+    if( iw_count >= statistics.get(truelevel+"_iw_max",0) ):
+        statistics[truelevel+"_iw_max"] = iw_count
+    statistics[truelevel+"_iw_total"] = statistics.get(truelevel+"_iw_total",0) + iw_count
 
 
     #begin sentence level operations
@@ -324,10 +334,13 @@ def checker(f, outf, thefilename):
 
     #stanford
     frag_count = 0
+    iw_count = 0
     stanford_sentences_tree = stanford_parser.raw_parse_sents(sentencearray)
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
             frag_match = re.search("FRAG", str(stanford_sentence))
+            iw_match = re.search(important_words, str(stanford_sentence))
+            iw_count = iw_count + len(iw_match)
             #print(str(stanford_sentence))
             #print('-----------------------------------')
             if frag_match:
@@ -602,6 +615,24 @@ def checker(f, outf, thefilename):
     score_2a = int(score_2a)
     ## (b) Does the essay address the topic?
     score_2b = 0
+
+    iw_avg = iw_count / sentencecount
+    high_iw_avg = statistics["high_iw_total"] / statistics["high_sentence_total"]
+    medium_iw_avg = statistics["medium_iw_total"] / statistics["medium_sentence_total"]
+    low_iw_avg = statistics["low_iw_total"] / statistics["low_sentence_total"]
+    high_iw_diff = abs(high_iw_avg - iw_avg)
+    medium_iw_diff = abs(medium_iw_avg - iw_avg)
+    low_iw_diff = abs(low_iw_avg - iw_avg)
+    min_iw_diff = min(high_iw_diff, medium_iw_diff, low_iw_diff)
+
+    if(iw_count == 0):
+        score_2b = 1
+    elif(min_iw_diff == high_iw_diff):
+        score_2b = 5
+    elif(min_iw_diff == medium_iw_diff):
+        score_2b = 4
+    else:
+        score_2b = 3
     #if "twenty" in t: score_2b = score_2b + 1
     #if "car" in t: score_2b = score_2b + 1
     #if "fewer" in t: score_2b = score_2b + 1
