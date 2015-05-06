@@ -20,7 +20,7 @@ After extracting the archived files enter the project directory. Please also fol
 Example:
         "python run.py"
 
-If you get a java class error, or similar, then you must set the 'JAVAHOME' enviroment variable for your OS. Please consult the Java docs for your OS for instructions.
+If you get a java class error, or similar, then you must set the 'JAVAHOME' enviroment variable for your OS. Please consult the Java docs for your OS for instructions. A JVM out of memory error may be thrown by the Stanford parser on essays with very long sentences, this is unavoidable and their is no way around it without coding for those cases.
 
 -------------------------------------------------------------------------
 --->TECHNIQUE<-----------------------------------------------------------
@@ -46,4 +46,4 @@ Checking error numbers after that for the 'low', 'medium' and 'high' levels with
 -------------------------------------------------------------------------
 --->TODO<----------------------------------------------------------------
 
-Parts 2A, 2B, 1D
+Parts 2A 2B
