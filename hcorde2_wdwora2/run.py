@@ -160,7 +160,7 @@ def train(f, level):
         if(( wronggenderantecedent < statistics.get(truelevel+"_wronggenderantecedent_min",pow(2,31))) or
            (statistics.get(truelevel+"_wronggenderantecedent_min",pow(2,31)) <= 0)):
             statistics[truelevel+"_wronggenderantecedent_min"] = wronggenderantecedent
-        if( wronggenderantecedent > statistics.get(truelevel+"_wronggenderantecedent_max",0)):
+        if( wronggenderantecedent >= statistics.get(truelevel+"_wronggenderantecedent_max",0)):
             statistics[truelevel+"_wronggenderantecedent_max"] = wronggenderantecedent
         statistics[truelevel+"_wronggenderantecedent_total"] = statistics.get(truelevel+"_wronggenderantecedent_total",0) + wronggenderantecedent
         
