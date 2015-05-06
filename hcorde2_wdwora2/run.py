@@ -26,8 +26,8 @@ stanford_parser = stanford.StanfordParser(model_path=os.path.join('stanford', 'e
 
 
 statistics = dict()
-maleantecedents = ["father", "uncle", "brother", "nephew"]
-femaleantecedents = ["mother", "aunt", "sister", "niece", "boat", "ship", "vessel", "earth"]
+maleantecedents = ["father", "uncle", "brother", "nephew", "mister"]
+femaleantecedents = ["mother", "aunt", "sister", "niece", "boat", "ship", "vessel", "earth", "ma'am"]
 
 class MySpellChecker():
     def __init__(self, dict_name='en_US', max_dist=2):
@@ -73,6 +73,7 @@ def train(f, level):
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     sentencearray = sent_detector.tokenize(text.strip())
     sentencecount = len(sentencearray)
+
     if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) or statistics.get(truelevel+"_sentence_min") <= 0):
         statistics[truelevel+"_sentence_min"] = sentencecount
     if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
@@ -81,7 +82,7 @@ def train(f, level):
 
     docs_total = statistics.get(truelevel+"_docs_total",0)
     docs_total = statistics[truelevel+"_docs_total"] = docs_total + 1
-     
+   
     subverbagg_err = 0
     #verb counting vars for entire doc
     doc_vps_average = 0.0
@@ -198,6 +199,7 @@ def train(f, level):
                             if( worksentence[bigramwalker-1][0] != "one" and
                                 worksentence[bigramwalker-1][0] != "1" ):
                                 wrongtheyantecedent = wrongtheyantecedent - 1
+        # print(wrongtheyantecedent)                        
         if(( wrongtheyantecedent < statistics.get(truelevel+"_wrongtheyantecedent_min",pow(2,31)))
            or (statistics.get(truelevel+"_wrongtheyantecedent_min",pow(2,31)) <= 0)):
             statistics[truelevel+"_wrongtheyantecedent_min"] = wrongtheyantecedent
@@ -555,28 +557,30 @@ def checker(f, outf, thefilename):
     ## (a) Is the essay coherent? Does it make sense?
     score_2a = 0
     
-    if(spellerrors > statistics["medium_wronggenderantecedent_max"] ):
+    if(wronggenderantecedent > statistics["medium_wronggenderantecedent_max"] ):
         # print("Higher than medium_wronggenderantecedent_max")
-        score_2a1 = max(int(round(0.5+((1.5/(statistics["low_wronggenderantecedent_max"] - statistics["medium_wronggenderantecedent_max"] + 1)) * spellerrors))),1)
-    elif(spellerrors > statistics["high_error_max"] ):
+        score_2a1 = min(max(int(round(0.5+((1.5/(statistics["low_wronggenderantecedent_max"] - statistics["medium_wronggenderantecedent_max"] + 1)) * spellerrors))),1),5)
+    elif(spellerrors > statistics["high_wronggenderantecedent_max"] ):
         # print("Higher than high_wronggenderantecedent_max")
-        score_2a1 = int(round(2+((1.5/(statistics["medium_wronggenderantecedent_max"] - statistics["high_wronggenderantecedent_max"] + 1)) * spellerrors)))
+        score_2a1 = min(int(round(2+((1.5/(statistics["medium_wronggenderantecedent_max"] - statistics["high_wronggenderantecedent_max"] + 1)) * spellerrors))),5)
     else:
         # print("Higher than high_wronggenderantecedent_min")
         score_2a1 = min(int(round(3.5+((1.5/(statistics["high_wronggenderantecedent_max"] - statistics["high_wronggenderantecedent_min"] + 1)) * spellerrors))),5)
         
-    if(spellerrors > statistics["medium_wrongtheyantecedent_max"] ):
+    if(wrongtheyantecedent > statistics["medium_wrongtheyantecedent_max"] ):
         # print("Higher than medium_wrongtheyantecedent_max")
-        score_2a2 = max(int(round(0.5+((1.5/(statistics["low_wrongtheyantecedent_max"] - statistics["medium_wrongtheyantecedent_max"] + 1)) * spellerrors))),1)
-    elif(spellerrors > statistics["high_error_max"] ):
+        score_2a2 = min(max(int(round(0.5+((1.5/(statistics["low_wrongtheyantecedent_max"] - statistics["medium_wrongtheyantecedent_max"] + 1)) * spellerrors))),1),5)
+    elif(spellerrors > statistics["high_wrongtheyantecedent_max"] ):
         # print("Higher than high_wrongtheyantecedent_max")
-        score_2a2 = int(round(2+((1.5/(statistics["medium_wrongtheyantecedent_max"] - statistics["high_wrongtheyantecedent_max"] + 1)) * spellerrors)))
+        score_2a2 = min(int(round(2+((1.5/(statistics["medium_wrongtheyantecedent_max"] - statistics["high_wrongtheyantecedent_max"] + 1)) * spellerrors))),5)
     else:
         # print("Higher than high_wrongtheyantecedent_min")
         score_2a2 = min(int(round(3.5+((1.5/(statistics["high_wrongtheyantecedent_max"] - statistics["high_wrongtheyantecedent_min"] + 1)) * spellerrors))),5)
 
+    # print(score_2a1)
+    # print(score_2a2)
     score_2a = ( score_2a2 + score_2a1 ) / 2
-
+    score_2a = int(score_2a)
     ## (b) Does the essay address the topic?
     score_2b = 0
     #if "twenty" in t: score_2b = score_2b + 1
