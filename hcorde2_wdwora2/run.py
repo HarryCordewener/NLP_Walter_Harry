@@ -556,7 +556,7 @@ def checker(f, outf, thefilename):
     # print(score_2a1)
     # print(score_2a2)
     score_2a = ( score_2a2 + score_2a1 ) / 2
-
+    score_2a = int(score_2a)
     ## (b) Does the essay address the topic?
     score_2b = 0
     #if "twenty" in t: score_2b = score_2b + 1
