@@ -5,18 +5,22 @@ Walter Dworak wdwora2@uic.edu
 
 -------------------------------------------------------------------------
 --->SETUP<---------------------------------------------------------------
-The following packages are required and need to be installed on your system. For installation instructions for there packages please consult the python library installation procedure for your operating system.
+The following packages are required and need to be installed on your system. For installation instructions for there packages please consult the python library installation procedure for your operating system. You MUST also be using verion 8 of the Java Runtime Enviroment.
 
 Package Requirements:
-        python3 
+        java 8
+        python 3 
         python-nltk
         nltk-data
         pyenchant
 
-After extracting the archived files enter the project directory. After placing the intended essay files in the test directory, navigate to the projects root root directory and run the "run.py" script file with your python interpreter. 
+
+After extracting the archived files enter the project directory. Please also follow the README file in the stanford directory for addtional instructions. After placing the intended essay files in the test directory, navigate to the projects root root directory and run the "run.py" script file with your python interpreter. 
 
 Example:
         "python run.py"
+
+If you get a java class error, or similar, then you must set the 'JAVAHOME' enviroment variable for your OS. Please consult the Java docs for your OS for instructions.
 
 -------------------------------------------------------------------------
 --->TECHNIQUE<-----------------------------------------------------------
@@ -43,4 +47,3 @@ Checking error numbers after that for the 'low', 'medium' and 'high' levels with
 --->TODO<----------------------------------------------------------------
 
 Parts 2A, 2B, 1D
-Verb Tense Checking can be improved
