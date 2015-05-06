@@ -663,8 +663,8 @@ def checker(f, outf, thefilename):
     score_final = score_1a + score_1b + score_1c + 2*score_1d + 2*score_2a + 3*score_2b + 2*score_3a
     
     grade = "low"
-    if(score_final>25): grade = "medium"
-    if(score_final>40): grade = "high"
+    if(score_final>35): grade = "medium"
+    if(score_final>45): grade = "high"
     output = (thefilename.split(".")[0] + "\t\t" + str(score_1a) + "\t\t" + str(score_1b) + "\t\t" + str(score_1c) + "\t\t" + str(score_1d) + 
              "\t\t" + str(score_2a) + "\t\t" + str(score_2b) + "\t\t" + str(score_3a) + "\t\t" + str(score_final) + "\t" + grade)
     
