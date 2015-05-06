@@ -97,7 +97,7 @@ def train(f, level):
     stanford_sentences_tree = stanford_parser.raw_parse_sents(sentencearray)
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
-            frag_match = re.match("FRAG", str(stanford_sentence))
+            frag_match = re.search("FRAG", str(stanford_sentence))
             #print(str(stanford_sentence))
             #print('-----------------------------------')
             if frag_match:
@@ -327,7 +327,7 @@ def checker(f, outf, thefilename):
     stanford_sentences_tree = stanford_parser.raw_parse_sents(sentencearray)
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
-            frag_match = re.match("FRAG", str(stanford_sentence))
+            frag_match = re.search("FRAG", str(stanford_sentence))
             #print(str(stanford_sentence))
             #print('-----------------------------------')
             if frag_match:
