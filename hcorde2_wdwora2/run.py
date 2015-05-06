@@ -100,7 +100,7 @@ def train(f, level):
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
             frag_match = re.search("FRAG", str(stanford_sentence))
-            iw_match = re.search(important_words, str(stanford_sentence))
+            iw_match = re.findall(important_words, str(stanford_sentence))
             iw_count = iw_count + len(iw_match)
             #print(str(stanford_sentence))
             #print('-----------------------------------')
@@ -339,7 +339,7 @@ def checker(f, outf, thefilename):
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
             frag_match = re.search("FRAG", str(stanford_sentence))
-            iw_match = re.search(important_words, str(stanford_sentence))
+            iw_match = re.findall(important_words, str(stanford_sentence))
             iw_count = iw_count + len(iw_match)
             #print(str(stanford_sentence))
             #print('-----------------------------------')
