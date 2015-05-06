@@ -326,6 +326,8 @@ def checker(f, outf, thefilename):
     for stanford_sentences in stanford_sentences_tree:
         for stanford_sentence in stanford_sentences:
             frag_match = re.match("FRAG", str(stanford_sentence))
+            #print(str(stanford_sentence))
+            #print('-----------------------------------')
             if frag_match:
                 frag_count = frag_count + 1
     
