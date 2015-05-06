@@ -16,7 +16,14 @@ from nltk.tokenize import TreebankWordTokenizer
 from nltk.corpus import wordnet as wn
 from nltk.grammar import CFG, Nonterminal, DependencyGrammar
 from nltk.metrics.distance import edit_distance
+from nltk.parse import stanford
 from itertools import chain
+
+os.environ['STANFORD_PARSER'] = os.path.join('stanford', 'stanford-parser-full-2015-04-20')
+os.environ['STANFORD_MODELS'] = os.path.join('stanford', 'stanford-parser-full-2015-04-20')
+#print(os.environ['JAVAHOME'])
+stanford_parser = stanford.StanfordParser(model_path=os.path.join('stanford', 'englishPCFG.ser.gz'), java_options="-mx2000m")
+
 
 statistics = dict()
 maleantecedents = ["father", "uncle", "brother", "nephew"]
@@ -66,7 +73,6 @@ def train(f, level):
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
     sentencearray = sent_detector.tokenize(text.strip())
     sentencecount = len(sentencearray)
-
     if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) or statistics.get(truelevel+"_sentence_min") <= 0):
         statistics[truelevel+"_sentence_min"] = sentencecount
     if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
@@ -75,7 +81,7 @@ def train(f, level):
 
     docs_total = statistics.get(truelevel+"_docs_total",0)
     docs_total = statistics[truelevel+"_docs_total"] = docs_total + 1
-   
+     
     subverbagg_err = 0
     #verb counting vars for entire doc
     doc_vps_average = 0.0
@@ -84,9 +90,26 @@ def train(f, level):
     vps_average = 0.0
 
     prevsentence = 0
+    
+    #stanford
+    frag_count = 0
+    stanford_sentences_tree = stanford_parser.raw_parse_sents(sentencearray)
+    for stanford_sentences in stanford_sentences_tree:
+        for stanford_sentence in stanford_sentences:
+            frag_match = re.match("FRAG", str(stanford_sentence))
+            if frag_match:
+                frag_count = frag_count + 1
+    if( frag_count < statistics.get(truelevel+"_frag_min",pow(2,31)) or statistics.get(truelevel+"_frag_min") <= 0):
+        statistics[truelevel+"_frag_min"] = frag_count
+    if( frag_count >= statistics.get(truelevel+"_frag_max",0) ):
+        statistics[truelevel+"_frag_max"] = frag_count
+    statistics[truelevel+"_frag_total"] = statistics.get(truelevel+"_frag_total",0) + frag_count
+
+
     #begin sentence level operations
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
+        #stanford_sentence = stanford_parser.raw_parse(sentence)
         numwords = len(tokenized_sentence)
         pos_tagged_sentence = nltk.pos_tag(tokenized_sentence)
         
@@ -175,7 +198,6 @@ def train(f, level):
                             if( worksentence[bigramwalker-1][0] != "one" and
                                 worksentence[bigramwalker-1][0] != "1" ):
                                 wrongtheyantecedent = wrongtheyantecedent - 1
-        print(wrongtheyantecedent)                        
         if(( wrongtheyantecedent < statistics.get(truelevel+"_wrongtheyantecedent_min",pow(2,31)))
            or (statistics.get(truelevel+"_wrongtheyantecedent_min",pow(2,31)) <= 0)):
             statistics[truelevel+"_wrongtheyantecedent_min"] = wrongtheyantecedent
