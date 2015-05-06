@@ -319,6 +319,15 @@ def checker(f, outf, thefilename):
     # print("Words: " + str(len(tokenized)))
     # print("Sentences: " + str(len(sentencearray)))
     prevsentence = 0
+
+    #stanford
+    frag_count = 0
+    stanford_sentences_tree = stanford_parser.raw_parse_sents(sentencearray)
+    for stanford_sentences in stanford_sentences_tree:
+        for stanford_sentence in stanford_sentences:
+            frag_match = re.match("FRAG", str(stanford_sentence))
+            if frag_match:
+                frag_count = frag_count + 1
     
     for sentence in sentencearray:
         tokenized_sentence = TreebankWordTokenizer().tokenize(sentence)
@@ -533,25 +542,31 @@ def checker(f, outf, thefilename):
     #print(score_1c)
     score_1c = int(score_1c)
 
-    #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
-    #    score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
-    #elif(nomainverb_err > statistics["high_nomainverb_max"] ):
-    #    score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
-
-    #if(nomainverb_err > statistics["medium_nomainverb_max"] ):
-    #    score_1c = max(int(round(0.5+((1.5/(statistics["low_nomainverb_max"] - statistics["medium_nomainverb_max"])) * nomainverb_err))),1)
-    #elif(nomainverb_err > statistics["high_nomainverb_max"] ):
-    #    score_1c = int(round(2+((1.5/(statistics["medium_nomainverb_max"] - statistics["high_nomainverb_max"])) * nomainverb_err)))
-    #else:
-    #    score_1c = min(int(round(3.5+((1.5/(statistics["high_nomainverb_max"] - statistics["high_nomainverb_min"])) * nomainverb_err))),5)
-
-    #score_1c = max(5-(nomainverb_err),1)
-
     ## 1d =  Sentence formation - are the sentences formed properly? i.e. beginning and ending
     ## properly, is the word order correct, are the constituents formed properly? are there
     ## missing words or constituents (prepositions, subject, object etc.)?
 
     score_1d = 0
+    frag_avg = frag_count / sentencecount
+    high_frag_avg = statistics["high_frag_total"] / statistics["high_sentence_total"]
+    medium_frag_avg = statistics["medium_frag_total"] / statistics["medium_sentence_total"]
+    low_frag_avg = statistics["low_frag_total"] / statistics["low_sentence_total"]
+    high_frag_diff = abs(high_frag_avg - frag_avg)
+    medium_frag_diff = abs(medium_frag_avg - frag_avg)
+    low_frag_diff = abs(low_frag_avg - frag_avg)
+    min_frag_diff = min(high_frag_diff, medium_frag_diff, low_frag_diff)
+    
+
+    if(frag_count == 0):
+        score_1d = 5
+    elif(min_frag_diff == high_frag_diff):
+        score_1d = 4
+    elif(min_frag_diff == medium_frag_diff):
+        score_1d = 3
+    elif((frag_avg*2) > (low_frag_avg*1.5) ):
+        score_1d = 1
+    else:
+        score_1d = 2
 
     ## 2. Semantics (meaning) / Pragmatics (general quality)
     ## (a) Is the essay coherent? Does it make sense?
