@@ -59,7 +59,7 @@ def train(f, level):
     
     if( spellerrors < statistics.get(truelevel+"_error_min",pow(3,31)) or statistics.get(truelevel+"_error_min") <= 0):
         statistics[truelevel+"_error_min"] = spellerrors
-    if( spellerrors > statistics.get(truelevel+"_error_max",0) ):
+    if( spellerrors >= statistics.get(truelevel+"_error_max",0) ):
         statistics[truelevel+"_error_max"] = spellerrors
     statistics[truelevel+"_error_total"] = statistics.get(truelevel+"_error_total",0) + spellerrors
 
@@ -69,7 +69,7 @@ def train(f, level):
 
     if( sentencecount < statistics.get(truelevel+"_sentence_min",pow(2,31)) or statistics.get(truelevel+"_sentence_min") <= 0):
         statistics[truelevel+"_sentence_min"] = sentencecount
-    if( sentencecount > statistics.get(truelevel+"_sentence_max",0) ):
+    if( sentencecount >= statistics.get(truelevel+"_sentence_max",0) ):
         statistics[truelevel+"_sentence_max"] = sentencecount
     statistics[truelevel+"_sentence_total"] = statistics.get(truelevel+"_sentence_total",0) + sentencecount
 
@@ -230,21 +230,21 @@ def train(f, level):
     doc_vps_average = vps_average / sentencecount
     if(( subverbagg_err < statistics.get(truelevel+"_subverbagg_min",pow(2,31))) or (statistics.get(truelevel+"_subverbagg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_subverbagg_min"] = subverbagg_err
-    if( subverbagg_err > statistics.get(truelevel+"_subverbagg_max",0)):
+    if( subverbagg_err >= statistics.get(truelevel+"_subverbagg_max",0)):
         statistics[truelevel+"_subverbagg_max"] = subverbagg_err
     statistics[truelevel+"_subverbagg_total"] = statistics.get(truelevel+"_subverbagg_total",0) + subverbagg_err
     
     #verb stats
     if(( nmv_error < statistics.get(truelevel+"_nmv_min",pow(2,31))) or (statistics.get(truelevel+"_nmv_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_nmv_min"] = nmv_error  
-    if( nmv_error > statistics.get(truelevel+"_nmv_max",0) ):
+    if( nmv_error >= statistics.get(truelevel+"_nmv_max",0) ):
         statistics[truelevel+"_nmv_max"] = nmv_error
     statistics[truelevel+"_nmv_total"] = statistics.get(truelevel+"_nmv_total",0) + nmv_error
     statistics[truelevel+"_doc_nmv_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_doc_nmv_avg",0)) + nmv_error)/(docs_total)
 
     if(( doc_vps_average < statistics.get(truelevel+"_vps_avg_min",pow(2,31))) or (statistics.get(truelevel+"_vps_avg_min",pow(2,31)) <= 0)):
         statistics[truelevel+"_vps_avg_min"] = doc_vps_average
-    if( doc_vps_average > statistics.get(truelevel+"_vps_avg_max",0)):
+    if( doc_vps_average >= statistics.get(truelevel+"_vps_avg_max",0)):
         statistics[truelevel+"_vps_avg_max"] = doc_vps_average
     statistics[truelevel+"_vps_avg"] = (((docs_total - 1) * statistics.get(truelevel+"_vps_avg",0)) + doc_vps_average)/(docs_total)
     
